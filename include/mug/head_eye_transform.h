@@ -35,6 +35,7 @@
 #include <mug/screen_model.h>
 #include <mug/eye_model.h>
 #include <mug/eye_model_moore.h>
+#include "eye_model_gp.h"
 
 #include <Eigen/Dense>
 #include <dlib/optimization.h>
@@ -106,7 +107,17 @@ namespace mug
         const ScreenModel &scr;
     };
 
-
+    /**
+     * \brief calculate the transformation and rotation vector
+     * \note For the Gaussian process model optimization of the translation and
+     * rotation vector is not neccessary.
+     * \param[in] samples Vector of Sample objects
+     * \param[in] screen ScreenModel objects
+     * \param[out] T_trans Translation vetor from head origin to eye origin
+     * \param[out] T_rot Rotation vector of eye in head reference frame
+     * \return Result of the BOBYQA algorithm or 0.0 if the Gaussian process model is
+     * used
+     */
     template<typename EyeModelT> 
     inline double findEyeTransform(
         const Samples &samples, const ScreenModel &screen,
@@ -135,6 +146,21 @@ namespace mug
         T_rot   = Vector3f(starting_point(3), starting_point(4), starting_point(5));
         std::cout << " f eye: " << f << "  T: " << T_trans.transpose() << "  " << T_rot.transpose() << std::endl;
         return f;
+    }
+    template<>
+    inline double findEyeTransform<EyeModelGp>(
+        const Samples &samples, const ScreenModel &screen,
+        Vector3f &T_trans, Vector3f &T_rot)
+    {
+        int param_dim = 6;
+        column_vector starting_point(param_dim);
+
+        starting_point =  -0.15, 0.03, -0.10, 0,0,0;
+
+        T_trans = Vector3f(starting_point(0), starting_point(1), starting_point(2));
+        T_rot   = Vector3f(starting_point(3), starting_point(4), starting_point(5));
+        std::cout << "  using Gaussian process model" << std::endl << "  T: " << T_trans.transpose() << "  " << T_rot.transpose() << std::endl;
+        return 0.0;
     }
     
 #if MOORE_NO_ROTATION

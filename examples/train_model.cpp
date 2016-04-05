@@ -13,12 +13,17 @@
 
 using namespace mug;
 
-//typedef mug::EyeModelLinear EyeModelSubject;
-//typedef mug::EyeModelLinear EyeModelScreen;
-typedef mug::EyeModelGp EyeModelSubject;
-typedef mug::EyeModelGp EyeModelScreen;
+#define USE_LINEAR 0
+
+#if USE_LINEAR
+typedef mug::EyeModelLinear EyeModelSubject;
+typedef mug::EyeModelLinear EyeModelScreen;
 //typedef mug::EyeModelMoore EyeModelSubject;
 //typedef mug::EyeModelMoore EyeModelScreen;
+#else
+typedef mug::EyeModelGp EyeModelSubject;
+typedef mug::EyeModelGp EyeModelScreen;
+#endif
 
 std::string dataDir    = "./data/";
 
@@ -61,7 +66,11 @@ int main(int argc, char ** argv)
     std::cout << std::fixed << std::setprecision(2);
 
     // File containing calibration samples
-    std::string dataFile = dataDir + "move_train.txt"; 
+#if USE_LINEAR
+    std::string dataFile = dataDir + "move_train.txt";
+#else
+    std::string dataFile = dataDir + "move_train_gp.txt";
+#endif
     std::string gazeFile = dataDir + "move_trainGaze.txt";
     std::ofstream trainGaze;
     trainGaze.open(gazeFile.c_str());

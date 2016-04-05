@@ -106,7 +106,7 @@ namespace mug
     private:
         EyeModelT eyeModel;         ///< Used to map pupil positions to gaze angles
         const ScreenModel &screen;  ///< Represents display surface
-        Eigen::Vector3f T_trans;    ///< Translation form head origin to eye origin
+        Eigen::Vector3f T_trans;    ///< Translation from head origin to eye origin
         Eigen::Vector3f T_rot;      ///< Rotation of eye in head reference frame
     };
 }
