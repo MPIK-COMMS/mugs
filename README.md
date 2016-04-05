@@ -1,5 +1,5 @@
 ==============================================================================
- MUG - Library for Mobile and Unrestrained Gazetracking
+ MUGS - Library for Mobile and Unrestrained Gazetracking
 ==============================================================================
 
 ------------------------------------------------------------------------------
@@ -10,7 +10,7 @@
 
 * CMake, Boost, Eigen3
 
-    sudo apt-get cmake-curses-gui libboost-all-dev libeigen3-dev 
+    sudo apt-get install cmake-curses-gui libboost-all-dev libeigen3-dev 
 
 * libGp
 
@@ -22,7 +22,7 @@
 
 In mug directory, type:
 
-    ccmake .
+    cmake .
     make -j4
     sudo make install
 
@@ -30,7 +30,7 @@ In mug directory, type:
 3. Build and run example (optional):
 
     cd examples
-    ccmake .
+    cmake .
     make -j4
 
     ./train_model
