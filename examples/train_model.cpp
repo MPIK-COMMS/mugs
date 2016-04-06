@@ -120,7 +120,7 @@ int main(int argc, char ** argv)
 
     // Load test data
     trainGaze.close();
-    dataFile = dataDir + "move_test.txt";
+    dataFile = dataDir + "move_train.txt";
     gazeFile = dataDir + "move_testGaze.txt";
     std::ofstream testGaze;
     testGaze.open(gazeFile.c_str());
