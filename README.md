@@ -1,5 +1,5 @@
-# ![MUGS - Mobile and Unrestrained Gazetracking Software]
-(doc/images/mug.png)
+# MUGS - Mobile and Unrestrained Gazetracking Software
+![MUGS logo](doc/images/mug.png)
 
 ## Installation - Linux
 
@@ -17,7 +17,7 @@ Download and install from:
 https://bitbucket.org/mblum/libgp
     
 
-### Build library:
+#### Build library:
 
 In mug directory, type:
 ```bash
