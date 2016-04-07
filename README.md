@@ -1,5 +1,5 @@
+<img src="doc/images/mug.png" align="right" hight="60" />
 # MUGS - Mobile and Unrestrained Gazetracking Software
-<img src="doc/images/mug.png" align="center" />
 
 ## Installation - Linux
 
