@@ -69,7 +69,7 @@ int main(int argc, char ** argv)
 #if USE_LINEAR
     std::string dataFile = dataDir + "move_train.txt";
 #else
-    std::string dataFile = dataDir + "move_train_gp.txt";
+    std::string dataFile = dataDir + "move_train.txt";
 #endif
     std::string gazeFile = dataDir + "move_trainGaze.txt";
     std::ofstream trainGaze;
@@ -120,7 +120,7 @@ int main(int argc, char ** argv)
 
     // Load test data
     trainGaze.close();
-    dataFile = dataDir + "move_train.txt";
+    dataFile = dataDir + "move_test.txt";
     gazeFile = dataDir + "move_testGaze.txt";
     std::ofstream testGaze;
     testGaze.open(gazeFile.c_str());
