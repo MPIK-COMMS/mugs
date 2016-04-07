@@ -1,5 +1,5 @@
 # MUGS - Mobile and Unrestrained Gazetracking Software
-![MUGS logo](doc/images/mug.png)
+<img src="doc/images/mug.png" align="center" />
 
 ## Installation - Linux
 
@@ -36,9 +36,10 @@ make -j4
 
 ## Contact
 
-If you have questions or issues please contact us:
-Lewis Chuang: lewis.chuang@tuebing.mpg.de
-Jonas Ditz: jonas.ditz@tuebingen.mpg.de
+If you have questions or issues please contact us
+
+- Lewis Chuang: lewis.chuang@tuebing.mpg.de
+- Jonas Ditz: jonas.ditz@tuebingen.mpg.de
 
 ## License
 
