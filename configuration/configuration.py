@@ -40,8 +40,14 @@ import pylsl
 # Constants
 #--------------------------------------------------
 
+# Define the sample rate for the LSL outlet.
 SAMPLERATE = 100
+
+# Duration of a fixation.
 FIXATIONTIME = 1000
+
+# Movement speed of the dot.
+SPEED = 4
 
 # Set up colors.
 BLACK = (0, 0, 0)
@@ -74,13 +80,45 @@ class MovingDot:
         self.y = y
         self.dx = dx
         self.dy = dy
+        self.calcDirection()
         self.size = size
+
+    def calcDirection(self):
+        """ Calculates moving direction of the 
+            dot.
+        """
+        if self.dx >= 0 and self.dy >= 0:
+            self.direction = 0
+        elif self.dx >= 0 and self.dy <= 0:
+            self.direction = 1
+        elif self.dx <= 0 and self.dy >= 0:
+            self.direction = 2
+        elif self.dx <= 0 and self.dy <= 0:
+            self.direction = 3
 
     def move(self):
         """ Move the dot for one timestep
         """
         self.x += self.dx
         self.y += self.dy
+
+    def reachedGoal(self, goal):
+        """ Returns True if the dot reached its goal.
+
+        Keyword arguments:
+        goal - Array of size two that stores the final destination 
+               of this moving dot
+        """
+        switcher = {
+            0: lambda: self.x >= goal[0] and self.y >= goal[1],
+            1: lambda: self.x >= goal[0] and self.y <= goal[1],
+            2: lambda: self.x <= goal[0] and self.y >= goal[1],
+            3: lambda: self.x <= goal[0] and self.y <= goal[1],
+        }
+
+        # get the function from the switcher
+        case = switcher.get(self.direction, lambda: False)
+        return case()
 
 
 #--------------------------------------------------
@@ -120,17 +158,25 @@ def createSeq(startX, startY, width, height):
     height - Height of the current window.
     """
     configSeq = []
-    configSeq.append([(width-50, startY), 1, 0])
-    configSeq.append([(width-50, height/4), 0, -1])
-    configSeq.append([(width/4, height/4), -1, 0])
-    configSeq.append([(width/4, 3*(height/4)), 0, 1])
-    configSeq.append([(3*(width/4), 3*(height/4)), 1, 0])
+    configSeq.append([(width-50, startY), SPEED, 0])
+    configSeq.append([(width-50, height/4), 0, -SPEED])
+    configSeq.append([(5*(width/8), height/4), -SPEED, 0])
+    configSeq.append([(5*(width/8), height/8), 0, -SPEED])
+    configSeq.append([(width/2, height/8), -SPEED, 0])
+    configSeq.append([(width/2, height/4), 0, SPEED])
+    configSeq.append([(width/4, height/4), -SPEED, 0])
+    configSeq.append([(width/4, 3*(height/4)), 0, SPEED])
+    configSeq.append([(3*(width/4), 3*(height/4)), SPEED, 0])
     configSeq.append([(width/2, height/2), 0, 0])
     configSeq.append([(width/4, height/2), 0, 0])
     configSeq.append([(50, 50), 0, 0])
     configSeq.append([(width-50, height-50), 0, 0])
     configSeq.append([(width-50, 50), 0, 0])
     configSeq.append([(50, height-50), 0, 0])
+    configSeq.append([(width/4, height/4), 0, 0])
+    configSeq.append([(width/4, 3*(height/4)), 0, 0])
+    configSeq.append([(3*(width/4), 3*(height/4)), 0, 0])
+    configSeq.append([(3*(width/4), height/4), 0, 0])
     return configSeq
 
 def drawAndRecordConfigSeq(dot, lslStream, sequence, pygameWindow):
@@ -149,32 +195,40 @@ def drawAndRecordConfigSeq(dot, lslStream, sequence, pygameWindow):
                    Experiment.
     """
     for part in sequence:
-        # check if you have fixation or smooth persued
-        if (part[1]==0 and part[2]==0):
+        # check if you have fixation or smooth persuit
+        if (part[1]==0 and part[2]==0): # fixation
             dot.x = part[0][0]
             dot.y = part[0][1]
             dot.dx = 0
             dot.dy = 0
-            startTime = currentTime()
-            while (currentTime() < startTime+FIXATIONTIME):
-                pygameWindow.fill(WHITE)
-                pygame.draw.circle(pygameWindow, BLACK, (dot.x, dot.y), dot.size, 0)
-                pygame.display.update()
-                lslStream.push_sample([dot.x, dot.y], pylsl.local_clock())
-        else:
+            pygameWindow.fill(WHITE)
+            pygame.draw.circle(pygameWindow, BLACK, (dot.x, dot.y), dot.size, 0)
+            pygame.display.update()
+            eventOccurence = False
+            while True:
+                for event in pygame.event.get():
+                    if event.type == KEYDOWN and event.key == K_RETURN:
+                        eventOccurence = True
+                        startTime = currentTime()
+                        while (currentTime() < startTime+FIXATIONTIME):
+                            lslStream.push_sample([dot.x, dot.y], pylsl.local_clock())
+                if eventOccurence:
+                    break
+        else: # smooth persuit
             pygameWindow.fill(WHITE)
             pygame.draw.circle(pygameWindow, BLACK, (dot.x, dot.y), dot.size, 0)
             pygame.display.update()
             lslStream.push_sample([dot.x, dot.y], pylsl.local_clock())
             dot.dx = part[1]
             dot.dy = part[2]
+            dot.calcDirection()
             while True:
                 dot.move()
                 pygameWindow.fill(WHITE)
                 pygame.draw.circle(pygameWindow, BLACK, (dot.x, dot.y), dot.size, 0)
                 pygame.display.update()
                 lslStream.push_sample([dot.x, dot.y], pylsl.local_clock())
-                if (dot.x==part[0][0] and dot.y==part[0][1]):
+                if dot.reachedGoal(part[0]):
                     break
 
 def configure():
@@ -186,11 +240,11 @@ def configure():
 
     # Get the current width and height of the screen.
     infoObject = pygame.display.Info()
-    width = infoObject.current_w - 50
-    height = infoObject.current_h - 50
+    width = infoObject.current_w
+    height = infoObject.current_h
 
     # Create a pygame window.
-    window = pygame.display.set_mode((width, height), 0, 32)
+    window = pygame.display.set_mode((width, height), pygame.FULLSCREEN, 32)
 
     # Create MovingDot object located at the center of the screen.
     dot = MovingDot(width/2, height/2, 0, 0, 20)

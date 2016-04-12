@@ -60,6 +60,22 @@ def fetchLSLstream(name):
     lslInlet = pylsl.StreamInlet(results[0])
     return lslInlet
 
+def dataToFile(data):
+    """ Writes collected data to a file called 
+        configuration.mugs
+    """
+    time = int(round(time.time() * 1000))
+    filename = 'configuration_'+str(time)+'.mugs'
+    f = open(filename, 'w')
+    for line in data:
+        s = (str(line[0])+' '+str(line[1])+' '+str(line[2])+' '+
+             str(line[3])+' '+str(line[4])+' '+str(line[5])+' '+
+             str(line[6])+' '+str(line[7])+' '+str(line[8])+' '+
+             str(line[9])+' '+str(line[10])+' '+str(line[11])+' '+str(line[12]))
+        f.write(s)
+    print 'Data written to file '+filename
+    f.close()
+
 
 if __name__ == '__main__':
     # Fetch the stream with eye tracker data.
@@ -82,13 +98,23 @@ if __name__ == '__main__':
     # [[timestamp, posHead, orientHead, leftEye, rightEye, posTarget]]
     data = []
     while (True):
-        dotSample, dotTimestamp = dotInlet.pull_sample()
-        #eyeSample, eyeTimestamp = eyeInlet.pull_sample()
-        #headSample, headTimestamp = headInlet.pull_sample()
-        eyeSample = [0,0,0,0]
-        headSample = [0,0,0,0,0,0]
+        try:
+            dotSample, dotTimestamp = dotInlet.pull_sample()
+            #eyeSample, eyeTimestamp = eyeInlet.pull_sample()
+            #headSample, headTimestamp = headInlet.pull_sample()
+            eyeSample = [0,0,0,0]
+            headSample = [0,0,0,0,0,0]
 
-        data.append([dotTimestamp, headSample[0], headSample[1], 
-                     headSample[2], headSample[3], headSample[4], 
-                     headSample[5], eyeSample[0], eyeSample[1], 
-                     eyeSample[2], eyeSample[3], dotSample[0], dotSample[1]])
+            print dotTimestamp, dotSample
+
+            data.append([dotTimestamp, headSample[0], headSample[1], 
+                         headSample[2], headSample[3], headSample[4], 
+                         headSample[5], eyeSample[0], eyeSample[1], 
+                         eyeSample[2], eyeSample[3], dotSample[0], dotSample[1]])
+
+        except:
+            print sys.exc_info()
+            break
+
+    # Write collected data to file
+    dataToFile(data)
