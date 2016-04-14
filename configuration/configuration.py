@@ -47,7 +47,7 @@ SAMPLERATE = 100
 FIXATIONTIME = 1000
 
 # Movement speed of the dot.
-SPEED = 4
+SPEED = 1
 
 # Set up colors.
 BLACK = (0, 0, 0)
@@ -244,7 +244,14 @@ def configure():
     height = infoObject.current_h
 
     # Create a pygame window.
-    window = pygame.display.set_mode((width, height), pygame.FULLSCREEN, 32)
+    window = pygame.display.set_mode((width, height), 32)#pygame.FULLSCREEN, 32)
+
+    # write message to the window
+    window.fill(WHITE)
+    font = pygame.font.SysFont("monospace", 15)
+    label = font.render("Waiting for consumers...", 1, BLACK)
+    window.blit(label, (width/2-100, height/2))
+    pygame.display.update()
 
     # Create MovingDot object located at the center of the screen.
     dot = MovingDot(width/2, height/2, 0, 0, 20)
@@ -252,10 +259,16 @@ def configure():
     # Create the path sequence for the dot.
     configSeq = createSeq(dot.x, dot.y, width, height)
 
-    # Create LSL StreamOutlet object
+    # Create LSL StreamOutlet object.
     lslStream = createLSLstream()
 
-    drawAndRecordConfigSeq(dot, lslStream, configSeq, window)
+    # Send data only if consumers are presented.
+    # Waits for five minutes.
+    if (lslStream.wait_for_consumers(300)):
+        drawAndRecordConfigSeq(dot, lslStream, configSeq, window)
+    else:
+        print "No consumer found!"
+        sys.exit()
 
 
 if __name__ == '__main__':
