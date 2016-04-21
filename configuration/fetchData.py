@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 
 """ Data fetching script for MUGS
-This script provides a routine to fetch all data, 
-which are needed for the configuration of MUGS
+This script provides a routine to fetch all LSL streams 
+that provide information needed for the configuration of MUGS.
+Fetched data is stored into specific files: dot_data.mugs, 
+eye_data.mugs and head_data.mugs. One can use these files to 
+create the calibration data file with the script buildCalibFile.py.
 
 Copyright (c) 2013, 2016 Max Planck Institute for Biological Cybernetics
 All rights reserved.
@@ -27,14 +30,23 @@ Author: Jonas Ditz (jonas.ditz@tuebingen.mpg.de)
 
 import sys
 import pylsl
+import time
 
 # ----------------------------------------
 # Constants
 # ----------------------------------------
 
+# Name of the streams used for calibrating 
+# MUGS
 DOT_STREAM_NAME = 'ConfigurationDotPositions'
-EYE_STREAM_NAME = ''
-HEAD_STREAM_NAME = ''
+EYE_STREAM_NAME = 'MyEyetrackerStream'
+HEAD_STREAM_NAME = 'MyHeadtrackerStream'
+
+# Name of the files where the raw calibration 
+# data are stored
+DOT_FILE_NAME = 'dot_data.mugs'
+EYE_FILE_NAME = 'eye_data.mugs'
+HEAD_FILE_NAME = 'head_data.mugs'
 
 # ----------------------------------------
 # Classes
@@ -64,8 +76,8 @@ def dataToFile(data):
     """ Writes collected data to a file called 
         configuration.mugs
     """
-    time = int(round(time.time() * 1000))
-    filename = 'configuration_'+str(time)+'.mugs'
+    currentTime = int(round(time.time() * 1000))
+    filename = 'calibData_'+str(currentTime)+'.mugs'
     f = open(filename, 'w')
     for line in data:
         s = (str(line[0])+' '+str(line[1])+' '+str(line[2])+' '+
@@ -93,28 +105,32 @@ if __name__ == '__main__':
     dotInlet = fetchLSLstream(DOT_STREAM_NAME)
     print 'DONE'
 
-
-    # Data is stored an 2-dimentional list with the following layout:
-    # [[timestamp, posHead, orientHead, leftEye, rightEye, posTarget]]
+    # open storage files
+    #dotFile = open(DOT_FILE_NAME, 'w')
+    #eyeFile = open(EYE_FILE_NAME, 'w')
+    #headFile = open(HEAD_FILE_NAME, 'w')
     data = []
     while (True):
-        try:
-            dotSample, dotTimestamp = dotInlet.pull_sample()
-            #eyeSample, eyeTimestamp = eyeInlet.pull_sample()
-            #headSample, headTimestamp = headInlet.pull_sample()
-            eyeSample = [0,0,0,0]
-            headSample = [0,0,0,0,0,0]
+        dotSample, dotTimestamp = dotInlet.pull_sample()
+        #eyeSample, eyeTimestamp = eyeInlet.pull_sample()
+        #headSample, headTimestamp = headInlet.pull_sample()
+        eyeSample = [0,0,0,0]
+        eyeTimestamp = dotTimestamp
+        headSample = [0,0,0,0,0,0]
+        headTimestamp = dotTimestamp
 
-            print dotTimestamp, dotSample
-
-            data.append([dotTimestamp, headSample[0], headSample[1], 
-                         headSample[2], headSample[3], headSample[4], 
-                         headSample[5], eyeSample[0], eyeSample[1], 
-                         eyeSample[2], eyeSample[3], dotSample[0], dotSample[1]])
-
-        except:
-            print sys.exc_info()
+        # Check whether or not the calibration sequence is over
+        if(dotSample[0] == -100):
+            dotInlet.close_stream()
+            #eyeInlet.close_stream()
+            #headInlet.close_stream()
             break
 
-    # Write collected data to file
+        #dotFile.write('{0} {1[0]} {1[1]}\n'.format(dotTimestamp, dotSample))
+        #eyeFile.write('{0} {1[0]} {1[1]} {1[2]} {1[3]}\n'.format(eyeTimestamp, eyeSample))
+        #headFile.write('{0} {1[0]} {1[1]} {1[2]} {1[3]} {1[4]} {1[5]}\n'.format(headTimestamp, headSample))
+
+        data.append([dotTimestamp, headSample[0], headSample[1], headSample[2], 
+                     headSample[3], headSample[4], headSample[5], eyeSample[0], 
+                     eyeSample[1], eyeSample[2], eyeSample[3], dotSample[0], dotSample[1]])
     dataToFile(data)

@@ -47,7 +47,7 @@ SAMPLERATE = 100
 FIXATIONTIME = 1000
 
 # Movement speed of the dot.
-SPEED = 1
+SPEED = 6
 
 # Set up colors.
 BLACK = (0, 0, 0)
@@ -87,13 +87,13 @@ class MovingDot:
         """ Calculates moving direction of the 
             dot.
         """
-        if self.dx >= 0 and self.dy >= 0:
+        if self.dx > 0 and self.dy == 0:
             self.direction = 0
-        elif self.dx >= 0 and self.dy <= 0:
+        elif self.dx == 0 and self.dy > 0:
             self.direction = 1
-        elif self.dx <= 0 and self.dy >= 0:
+        elif self.dx < 0 and self.dy == 0:
             self.direction = 2
-        elif self.dx <= 0 and self.dy <= 0:
+        elif self.dx == 0 and self.dy < 0:
             self.direction = 3
 
     def move(self):
@@ -110,10 +110,10 @@ class MovingDot:
                of this moving dot
         """
         switcher = {
-            0: lambda: self.x >= goal[0] and self.y >= goal[1],
-            1: lambda: self.x >= goal[0] and self.y <= goal[1],
-            2: lambda: self.x <= goal[0] and self.y >= goal[1],
-            3: lambda: self.x <= goal[0] and self.y <= goal[1],
+            0: lambda: self.x >= goal[0],
+            1: lambda: self.y >= goal[1],
+            2: lambda: self.x <= goal[0],
+            3: lambda: self.y <= goal[1],
         }
 
         # get the function from the switcher
@@ -194,6 +194,20 @@ def drawAndRecordConfigSeq(dot, lslStream, sequence, pygameWindow):
     pygameWindow - Pygame window object to visualize the 
                    Experiment.
     """
+    # Display dot at start position until 
+    # subject press a button.
+    pygameWindow.fill(WHITE)
+    pygame.draw.circle(pygameWindow, BLACK, (dot.x, dot.y), dot.size, 0)
+    pygame.display.update()
+    eventOcc = False
+    while True:
+        if eventOcc:
+            break
+        for event in pygame.event.get():
+            if event.type == KEYDOWN and event.key == K_RETURN:
+                eventOcc = True
+
+    # Start the calibration sequence
     for part in sequence:
         # check if you have fixation or smooth persuit
         if (part[1]==0 and part[2]==0): # fixation
@@ -204,15 +218,15 @@ def drawAndRecordConfigSeq(dot, lslStream, sequence, pygameWindow):
             pygameWindow.fill(WHITE)
             pygame.draw.circle(pygameWindow, BLACK, (dot.x, dot.y), dot.size, 0)
             pygame.display.update()
-            eventOccurence = False
+            eventOcc = False
             while True:
                 for event in pygame.event.get():
                     if event.type == KEYDOWN and event.key == K_RETURN:
-                        eventOccurence = True
+                        eventOcc = True
                         startTime = currentTime()
                         while (currentTime() < startTime+FIXATIONTIME):
                             lslStream.push_sample([dot.x, dot.y], pylsl.local_clock())
-                if eventOccurence:
+                if eventOcc:
                     break
         else: # smooth persuit
             pygameWindow.fill(WHITE)
@@ -230,6 +244,11 @@ def drawAndRecordConfigSeq(dot, lslStream, sequence, pygameWindow):
                 lslStream.push_sample([dot.x, dot.y], pylsl.local_clock())
                 if dot.reachedGoal(part[0]):
                     break
+ 
+    # Indicate that the calibration sequence is over
+    afterTime = currentTime()
+    while (currentTime() < afterTime+1000):
+        lslStream.push_sample([-100, -100], pylsl.local_clock())
 
 def configure():
     """ This function generates the visual experiment, which can be
@@ -244,13 +263,14 @@ def configure():
     height = infoObject.current_h
 
     # Create a pygame window.
-    window = pygame.display.set_mode((width, height), 32)#pygame.FULLSCREEN, 32)
+    window = pygame.display.set_mode((width, height), pygame.FULLSCREEN, 32)
 
     # write message to the window
     window.fill(WHITE)
-    font = pygame.font.SysFont("monospace", 15)
+    font = pygame.font.SysFont("monospace", height/20)
+    font_w, font_h = font.size("Waiting for consumers...")
     label = font.render("Waiting for consumers...", 1, BLACK)
-    window.blit(label, (width/2-100, height/2))
+    window.blit(label, (width/2-(font_w/2), height/2))
     pygame.display.update()
 
     # Create MovingDot object located at the center of the screen.
@@ -264,11 +284,19 @@ def configure():
 
     # Send data only if consumers are presented.
     # Waits for five minutes.
-    if (lslStream.wait_for_consumers(300)):
+    if (lslStream.wait_for_consumers(50)):
         drawAndRecordConfigSeq(dot, lslStream, configSeq, window)
     else:
-        print "No consumer found!"
-        sys.exit()
+        window.fill(WHITE)
+        font_w, font_h = font.size("Did not find any consumer!")
+        label = font.render("Did not find any consumer!", 1, BLACK)
+        window.blit(label, (width/2-(font_w/2), height/2))
+        pygame.display.update()
+        time.sleep(1)
+
+    # Quits the program
+    pygame.quit()
+    sys.exit()
 
 
 if __name__ == '__main__':
