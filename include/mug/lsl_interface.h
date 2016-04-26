@@ -39,22 +39,28 @@ class Sample;
     class LslInterface
     {
     public:
-        stream_inlet headInlet;   ///< Stream inlet that provides head coordinates
-	stream_inlet eyeInlet;    ///< Stream inlet that provides eye coordinates
-	stream_inlet dotInlet;    ///< Stream inlet that provides dot coordinates
+        stream_inlet headInlet;                    ///< Stream inlet that provides head coordinates
+	stream_inlet eyeInlet;                     ///< Stream inlet that provides eye coordinates
+	stream_inlet stimInlet;                    ///< Stream inlet that provides stimulus coordinates
+	int h_x, h_y, h_z, h_yaw, h_pitch, h_roll; ///< Channel number of head coordinates.
+	int eLeft_x, eLeft_y, eRight_x, eRight_y;  ///< Channel number of eye coordinates.
+	int stim_x, stim_y;                        ///< Channel number of stimulus coordinates
         
         /**
 	 * \brief Constructor of the LslInterface class. It assigns values to 
-	 * headInlet, eyeInlet and dotInlet.
+	 * headInlet, eyeInlet and stimInlet.
 	 * \param[in] hName Name of the stream that provides head coordinates.
 	 * \param[in] eName Name of the stream that provides eye coordinates.
-	 * \param[in] dName Name of the stream that provides dot coordinates.
+	 * \param[in] sName Name of the stream that provides stimulus coordinates.
 	 */
-        LslInterface(String hName, String eName, String dName)
+        LslInterface(std::string hName, std::string eName, std::string sName,
+	             std::array<int> headChannels = [0,1,2,3,4,5], 
+		     std::array<int> eyeChannels  = [1,2,3,4],
+		     std::array<int> stimChannels = [0,1])
 	{
 	    this->headInlet(loadStream(hName));
 	    this->eyeInlet(loadStream(eName));
-	    this->dotInlet(loadStream(dName));
+	    this->stimInlet(loadStream(sName));
 	}
 	
 	/**
@@ -77,7 +83,7 @@ class Sample;
 	 */
         bool readFromLSL(bool calibrate, Sample &s);
     private:
-        stream_inlet loadStream(String streamName)
+        stream_inlet loadStream(std::string streamName)
 	{
 	    // resolve the stream of interest and make an inlet
 	    std::vector<steam_info> results = resolve_stream("name", streamName);

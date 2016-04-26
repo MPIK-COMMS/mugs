@@ -33,10 +33,10 @@ bool LslInterface::readFromLSL(bool calibrate, Sample &s)
         // receive data and time stamps
         float headSample[6];
 	float eyeSample[4];
-	float dotSample[2];
+	float stimSample[2];
 	double head_ts = this->headInlet.pull_sample(&headSample[0], 6);
 	double eye_ts = this->eyeInlet.pull_sample(&eyeSample[0], 4);
-	double dot_ts = this->dotInlet.pull_sample(&dotSample[0], 2);
+	double stim_ts = this->stimInlet.pull_sample(&stimSample[0], 2);
 	
 	// store data to Sample
 	s.timestamp = eye_ts;
@@ -44,10 +44,22 @@ bool LslInterface::readFromLSL(bool calibrate, Sample &s)
 	s.H_o[0] = headSample[3]; s.H_o[1] = headSample[4]; s.H_o[2] = headSample[5];
 	s.px_left = eyeSample[0]; s.py_left = eyeSample[1];
 	s.px_right = eyeSample[2]; s.py_right = eyeSample[3];
-	s.target_pos[0] = dotSample[0]; s.target_pos[1] = dotSample[1];
+	s.target_pos[0] = stimSample[0]; s.target_pos[1] = stimSample[1];
     }
     else
     {
-        
+        // receive data and time stamps
+        float headSample[6];
+	float eyeSample[4];
+	double head_ts = this->headInlet.pull_sample(&headSample[0], 6);
+	double eye_ts = this->eyeInlet.pull_sample(&eyeSample[0], 4);
+	
+	// store data to Sample
+	s.timestamp = eye_ts;
+	s.H_pos[0] = headSample[0]; s.H_pos[1] = headSample[1]; s.H_pos[2] = headSample[2];
+	s.H_o[0] = headSample[3]; s.H_o[1] = headSample[4]; s.H_o[2] = headSample[5];
+	s.px_left = eyeSample[0]; s.py_left = eyeSample[1];
+	s.px_right = eyeSample[2]; s.py_right = eyeSample[3];
+	s.target_pos[0] = -1; s.target_pos[1] = -1;
     }
 }
