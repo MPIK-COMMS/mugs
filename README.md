@@ -38,7 +38,7 @@ make -j4
 
 If you have questions or issues please contact us
 
-- Lewis Chuang: lewis.chuang@tuebing.mpg.de
+- Lewis Chuang: lewis.chuang@tuebingen.mpg.de
 - Jonas Ditz: jonas.ditz@tuebingen.mpg.de
 
 ## License
