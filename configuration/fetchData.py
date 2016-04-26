@@ -83,8 +83,9 @@ def dataToFile(data):
         s = (str(line[0])+' '+str(line[1])+' '+str(line[2])+' '+
              str(line[3])+' '+str(line[4])+' '+str(line[5])+' '+
              str(line[6])+' '+str(line[7])+' '+str(line[8])+' '+
-             str(line[9])+' '+str(line[10])+' '+str(line[11])+' '+str(line[12]))
-        f.write(s)
+             str(line[9])+' '+str(line[10])+' 0 0 0 0 '+
+             str(line[11])+' '+str(line[12]))
+        f.write(s+'\n')
     print 'Data written to file '+filename
     f.close()
 
@@ -126,11 +127,8 @@ if __name__ == '__main__':
             #headInlet.close_stream()
             break
 
-        #dotFile.write('{0} {1[0]} {1[1]}\n'.format(dotTimestamp, dotSample))
-        #eyeFile.write('{0} {1[0]} {1[1]} {1[2]} {1[3]}\n'.format(eyeTimestamp, eyeSample))
-        #headFile.write('{0} {1[0]} {1[1]} {1[2]} {1[3]} {1[4]} {1[5]}\n'.format(headTimestamp, headSample))
-
-        data.append([dotTimestamp, headSample[0], headSample[1], headSample[2], 
-                     headSample[3], headSample[4], headSample[5], eyeSample[0], 
-                     eyeSample[1], eyeSample[2], eyeSample[3], dotSample[0], dotSample[1]])
+        if (dotTimestamp == eyeTimestamp == headTimestamp):
+            data.append([dotTimestamp, headSample[0], headSample[1], headSample[2], 
+                         headSample[3], headSample[4], headSample[5], eyeSample[0], 
+                         eyeSample[1], eyeSample[2], eyeSample[3], dotSample[0], dotSample[1]])
     dataToFile(data)

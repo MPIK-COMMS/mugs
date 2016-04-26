@@ -96,7 +96,8 @@ namespace mug
     /** 
      * \brief Read a sample from an input stream
      * \param[in] file Input stream
-     * \param[in] s \ref Sample object to store data in
+     * \param[out] s \ref Sample object to store data in
+     * \return True if the load was successful, False otherwise.
      */
     inline bool loadSample(std::ifstream &file, Sample &s)
     {
