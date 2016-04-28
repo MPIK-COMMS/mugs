@@ -18,48 +18,33 @@
  * along with MUGS.  If not, see <http://www.gnu.org/licenses/>. 
  */
 
-#include "mug/lsl_interface.h"
-
 #include "liblsl/lsl_cpp.h"
 #include <stdlib.h>
+
+#include "mug/lsl_interface.h"
+#include "mug/sample.h"
 
 using namespace lsl;
 using namespace mug;
 
-bool LslInterface::readFromLSL(bool calibrate, Sample &s)
+void LslInterface::readFromLSL(bool calibrate, Sample &s)
 {
-    if(calibrate) 
-    {
-        // receive data and time stamps
-        float headSample[6];
-	float eyeSample[4];
-	float stimSample[2];
-	double head_ts = this->headInlet.pull_sample(&headSample[0], 6);
-	double eye_ts = this->eyeInlet.pull_sample(&eyeSample[0], 4);
-	double stim_ts = this->stimInlet.pull_sample(&stimSample[0], 2);
-	
-	// store data to Sample
-	s.timestamp = eye_ts;
-	s.H_pos[0] = headSample[this->h_x]; s.H_pos[1] = headSample[this->h_y]; s.H_pos[2] = headSample[this->h_z];
-	s.H_o[0] = headSample[this->h_yaw]; s.H_o[1] = headSample[this->h_pitch]; s.H_o[2] = headSample[this->h_roll];
-	s.px_left = eyeSample[this->eLeft_x]; s.py_left = eyeSample[this->eLeft_y];
-	s.px_right = eyeSample[this->eRight_x]; s.py_right = eyeSample[this->eRight_y];
-	s.target_pos[0] = stimSample[this->stim_x]; s.target_pos[1] = stimSample[this->stim_y];
-    }
-    else
-    {
-        // receive data and time stamps
-        float headSample[6];
-	float eyeSample[4];
-	double head_ts = this->headInlet.pull_sample(&headSample[0], 6);
-	double eye_ts = this->eyeInlet.pull_sample(&eyeSample[0], 4);
-	
-	// store data to Sample
-	s.timestamp = eye_ts;
-	s.H_pos[0] = headSample[this->h_x]; s.H_pos[1] = headSample[this->h_y]; s.H_pos[2] = headSample[this->h_z];
-	s.H_o[0] = headSample[this->h_yaw]; s.H_o[1] = headSample[this->h_pitch]; s.H_o[2] = headSample[this->h_roll];
-	s.px_left = eyeSample[this->eLeft_x]; s.py_left = eyeSample[this->eLeft_y];
-	s.px_right = eyeSample[this->eRight_x]; s.py_right = eyeSample[this->eRight_y];
-	s.target_pos[0] = -1; s.target_pos[1] = -1;
-    }
+
+    // receive data and time stamps
+    float headSample[6];
+    float eyeSample[4];
+    float stimSample[2] = {-1, -1};
+    double head_ts = this->headInlet.pull_sample(&headSample[0], 6);
+    double eye_ts = this->eyeInlet.pull_sample(&eyeSample[0], 4);
+    double stim_ts = 0.0;
+    // pull sample from the stimulus stream only in calibration situation
+    if (calibrate) {stim_ts = this->stimInlet.pull_sample(&stimSample[0], 2);}
+
+    // store data to Sample
+    s.timestamp = eye_ts;
+    s.H_pos[0] = headSample[this->h_x]; s.H_pos[1] = headSample[this->h_y]; s.H_pos[2] = headSample[this->h_z];
+    s.H_o[0] = headSample[this->h_yaw]; s.H_o[1] = headSample[this->h_pitch]; s.H_o[2] = headSample[this->h_roll];
+    s.px_left = eyeSample[this->eLeft_x]; s.py_left = eyeSample[this->eLeft_y];
+    s.px_right = eyeSample[this->eRight_x]; s.py_right = eyeSample[this->eRight_y];
+    s.target_pos[0] = stimSample[this->stim_x]; s.target_pos[1] = stimSample[this->stim_y];
 }

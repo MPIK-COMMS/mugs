@@ -133,6 +133,7 @@ namespace mug
     /** 
      * \brief Load dataset from file
      * \param[in] filename Path and name of data file
+     * \param[in] swap Boolean value that indicate whether yaw and pitch 
      * \return Vector of samples with one sample per line in input file.
      */
     inline std::vector<Sample> loadSamples(const std::string &filename)

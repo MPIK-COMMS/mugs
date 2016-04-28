@@ -27,13 +27,11 @@ using namespace lsl;
 
 namespace mug
 {
-
-class Sample;
  
     class Sample;
     
     /**
-     * \brief Interface class to collect data from LSL, directly. 
+     * \brief Interface class to collect data from LSL. 
      * \author Jonas Ditz
      */
     class LslInterface
@@ -55,7 +53,8 @@ class Sample;
 	 * for the eye LSL stream channels and [x, y] for the stimulus LSL stream channels.
 	 * \param[in] hName Name of the stream that provides head coordinates.
 	 * \param[in] eName Name of the stream that provides eye coordinates.
-	 * \param[in] sName Name of the stream that provides stimulus coordinates.
+	 * \param[in] sName Name of the stream that provides stimulus coordinates. If no stimulus 
+	 *                  is used in the experiment use an empty string.
 	 * \param[in] headChannels Array that stores the channel numbers for the head coordinates.
 	 * \param[in] eyeChannels Array that stores the channel numbers for the eye coordinates.
 	 * \param[in] stimChannels Array that stores the channel numbers for the stimlus coordinates.
@@ -69,7 +68,7 @@ class Sample;
 	{
 	    this->headInlet(loadStream(hName));
 	    this->eyeInlet(loadStream(eName));
-	    this->stimInlet(loadStream(sName));
+	    if (sName != "") {this->stimInlet(loadStream(sName));}
 	    this->h_x = headChannels[0]; this->h_y = headChannels[1]; this->h_z = headChannels[2];
 	    this->h_yaw = headChannels[3]; this->h_pitch = headChannels[4]; this->h_roll = headChannels[5];
 	    this->eLeft_x = eyeChannels[0]; this->eLeft_y = eyeChannels[1];
@@ -97,7 +96,8 @@ class Sample;
 	 *   y coordinate of stimulus       at channel 1   of stimulus LSL stream
 	 * \param[in] hName Name of the stream that provides head coordinates.
 	 * \param[in] eName Name of the stream that provides eye coordinates.
-	 * \param[in] sName Name of the stream that provides stimulus coordinates.
+	 * \param[in] sName Name of the stream that provides stimulus coordinates. If no stimulus 
+	 *                  is used in the experiment use an empty string.
 	 */
 	LslInterface(std::string hName, 
 		     std::string eName, 
@@ -105,7 +105,7 @@ class Sample;
 	{
             this->headInlet(loadStream(hName));
 	    this->eyeInlet(loadStream(eName));
-	    this->stimInlet(loadStream(sName));
+	    if (sName != "") {this->stimInlet(loadStream(sName));}
 	    this->h_x = 0; this->h_y = 1; this->h_z = 2;
 	    this->h_yaw = 3; this->h_pitch = 4; this->h_roll = 5;
 	    this->eLeft_x = 0; this->eLeft_y = 1;
@@ -129,9 +129,9 @@ class Sample;
 	 * and dot coordinates (calibrate == true) or only head and eye coordinates
 	 * (calibrate == false).
 	 * \param[out] s \ref Sample to store data in.
-	 * \return True if the reading was successful, false otherwise.
 	 */
-        bool readFromLSL(bool calibrate, Sample &s);
+        void readFromLSL(bool calibrate, Sample &s);
+	
     private:
         stream_inlet loadStream(std::string streamName)
 	{
