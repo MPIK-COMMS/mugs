@@ -40,11 +40,11 @@ bool LslInterface::readFromLSL(bool calibrate, Sample &s)
 	
 	// store data to Sample
 	s.timestamp = eye_ts;
-	s.H_pos[0] = headSample[0]; s.H_pos[1] = headSample[1]; s.H_pos[2] = headSample[2];
-	s.H_o[0] = headSample[3]; s.H_o[1] = headSample[4]; s.H_o[2] = headSample[5];
-	s.px_left = eyeSample[0]; s.py_left = eyeSample[1];
-	s.px_right = eyeSample[2]; s.py_right = eyeSample[3];
-	s.target_pos[0] = stimSample[0]; s.target_pos[1] = stimSample[1];
+	s.H_pos[0] = headSample[this->h_x]; s.H_pos[1] = headSample[this->h_y]; s.H_pos[2] = headSample[this->h_z];
+	s.H_o[0] = headSample[this->h_yaw]; s.H_o[1] = headSample[this->h_pitch]; s.H_o[2] = headSample[this->h_roll];
+	s.px_left = eyeSample[this->eLeft_x]; s.py_left = eyeSample[this->eLeft_y];
+	s.px_right = eyeSample[this->eRight_x]; s.py_right = eyeSample[this->eRight_y];
+	s.target_pos[0] = stimSample[this->stim_x]; s.target_pos[1] = stimSample[this->stim_y];
     }
     else
     {
@@ -56,10 +56,10 @@ bool LslInterface::readFromLSL(bool calibrate, Sample &s)
 	
 	// store data to Sample
 	s.timestamp = eye_ts;
-	s.H_pos[0] = headSample[0]; s.H_pos[1] = headSample[1]; s.H_pos[2] = headSample[2];
-	s.H_o[0] = headSample[3]; s.H_o[1] = headSample[4]; s.H_o[2] = headSample[5];
-	s.px_left = eyeSample[0]; s.py_left = eyeSample[1];
-	s.px_right = eyeSample[2]; s.py_right = eyeSample[3];
+	s.H_pos[0] = headSample[this->h_x]; s.H_pos[1] = headSample[this->h_y]; s.H_pos[2] = headSample[this->h_z];
+	s.H_o[0] = headSample[this->h_yaw]; s.H_o[1] = headSample[this->h_pitch]; s.H_o[2] = headSample[this->h_roll];
+	s.px_left = eyeSample[this->eLeft_x]; s.py_left = eyeSample[this->eLeft_y];
+	s.px_right = eyeSample[this->eRight_x]; s.py_right = eyeSample[this->eRight_y];
 	s.target_pos[0] = -1; s.target_pos[1] = -1;
     }
 }
