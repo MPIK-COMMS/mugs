@@ -133,10 +133,10 @@ namespace mug
         void readFromLSL(bool calibrate, Sample &s);
 	
     private:
-        stream_inlet loadStream(std::string streamName)
+        stream_info loadStream(std::string streamName)
 	{
 	    // resolve the stream of interest and make an inlet
-	    std::vector<steam_info> results = resolve_stream("name", streamName);
+	    std::vector<stream_info> results = resolve_stream("name", streamName);
 	    return(results[0]);
 	}
     };
