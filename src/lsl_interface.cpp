@@ -27,18 +27,76 @@
 using namespace lsl;
 using namespace mug;
 
-void LslInterface::readFromLSL(bool calibrate, Sample &s)
+std::vector< Sample > LslInterface::fetchDataWStim(int terminal)
+{
+    // resolve head stream
+    std::vector<stream_info> resultsHead = resolve_stream("name", this->headStreamName);
+    // resolve eye stream
+    std::vector<stream_info> resultsEye = resolve_stream("name", this->eyeStreamName);
+    // resolve stimulus stream
+    std::vector<stream_info> resultsStim = resolve_stream("name", this->stimStreamName);
+    
+    // get inlets for all three streams
+    stream_inlet head(resultsHead[0]);
+    stream_inlet eye(resultsEye[0]);
+    stream_inlet stimulus(resultsStim[0]);
+    
+    std::vector<Sample> samples;
+    Sample s;
+    while(true)
+    {
+        this->readFromLSL(head, eye, stimulus, s);
+	
+	if ((s.target_pos[0] == terminal) or (s.target_pos[1] == terminal))
+	{
+	    head.close_stream();
+	    eye.close_stream();
+	    stimulus.close_stream();
+	    break;
+	}
+	
+	samples.push_back(s);
+    }
+    
+    return samples;
+}
+
+std::vector< Sample > LslInterface::fetchDataWoStim()
+{
+    // resolve head stream
+    std::vector<stream_info> resultsHead = resolve_stream("name", this->headStreamName);
+    // resolve eye stream
+    std::vector<stream_info> resultsEye = resolve_stream("name", this->eyeStreamName);
+    
+    // get inlets for both streams
+    stream_inlet head(resultsHead[0]);
+    stream_inlet eye(resultsEye[0]);
+    
+    std::vector<Sample> samples;
+    Sample s;
+    while(true)
+    {
+        this->readFromLSL(head, eye, s);
+	samples.push_back(s);
+    }
+    
+    return samples;
+}
+
+
+void LslInterface::readFromLSL(stream_inlet &hInlet, 
+		               stream_inlet &eInlet,
+		               stream_inlet &sInlet,
+		               Sample &s)
 {
 
     // receive data and time stamps
     float headSample[6];
     float eyeSample[4];
     float stimSample[2] = {-1, -1};
-    double head_ts = this->headInlet.pull_sample(&headSample[0], 6);
-    double eye_ts = this->eyeInlet.pull_sample(&eyeSample[0], 4);
-    double stim_ts = 0.0;
-    // pull sample from the stimulus stream only in calibration situation
-    if (calibrate) {stim_ts = this->stimInlet.pull_sample(&stimSample[0], 2);}
+    double head_ts = hInlet.pull_sample(&headSample[0], 6);
+    double eye_ts = eInlet.pull_sample(&eyeSample[0], 4);
+    double stim_ts = sInlet.pull_sample(&stimSample[0], 2);
 
     // store data to Sample
     s.timestamp = eye_ts;
@@ -47,4 +105,23 @@ void LslInterface::readFromLSL(bool calibrate, Sample &s)
     s.px_left = eyeSample[this->eLeft_x]; s.py_left = eyeSample[this->eLeft_y];
     s.px_right = eyeSample[this->eRight_x]; s.py_right = eyeSample[this->eRight_y];
     s.target_pos[0] = stimSample[this->stim_x]; s.target_pos[1] = stimSample[this->stim_y];
+}
+
+void LslInterface::readFromLSL(stream_inlet &hInlet, 
+		               stream_inlet &eInlet,
+		               Sample &s)
+{
+
+    // receive data and time stamps
+    float headSample[6];
+    float eyeSample[4];
+    double head_ts = hInlet.pull_sample(&headSample[0], 6);
+    double eye_ts = eInlet.pull_sample(&eyeSample[0], 4);
+
+    // store data to Sample
+    s.timestamp = eye_ts;
+    s.H_pos[0] = headSample[this->h_x]; s.H_pos[1] = headSample[this->h_y]; s.H_pos[2] = headSample[this->h_z];
+    s.H_o[0] = headSample[this->h_yaw]; s.H_o[1] = headSample[this->h_pitch]; s.H_o[2] = headSample[this->h_roll];
+    s.px_left = eyeSample[this->eLeft_x]; s.py_left = eyeSample[this->eLeft_y];
+    s.px_right = eyeSample[this->eRight_x]; s.py_right = eyeSample[this->eRight_y];
 }

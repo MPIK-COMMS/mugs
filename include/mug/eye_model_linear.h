@@ -67,6 +67,7 @@ namespace mug
 	 */
 	inline double getConfidence(const Sample &s) const
 	{
+	    // Currently, no convidence evaluation implemented!
 	    return 0.0;
 	};
 

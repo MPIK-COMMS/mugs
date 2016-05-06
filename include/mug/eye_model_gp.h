@@ -74,7 +74,7 @@ namespace mug
          * \param[in] numOptimizationSamples Number of samples used for hyper-parameter optimization (default = 200)
          */
         void fit(const std::vector<Sample> &samples, 
-		ModelType mt = EYE_LEFT, 
+		ModelType mt = EYE_BOTH, 
                 const std::string cov = default_cov(), 
                 bool optimizeParameters = true, 
                 int numOptimizationSamples = 200);
@@ -100,6 +100,14 @@ namespace mug
          */
         Eigen::Vector2f predict(const Sample &s, ModelType mt) const;
 	
+	/** 
+         * \brief Predict gaze angles based on pupil position using
+	 * both eyes. 
+         * \param[in] s Sample object containing UV pupil position 
+         * \return 2D vector containing yaw and pitch angle in radians.
+         */
+        Eigen::Vector2f predict(const Sample &s) const {return predict(s, EYE_BOTH);}
+	
 	/**
 	 * \brief Calculate confidence in the predicted gaze angles
 	 * \param[in] s Sample object containing UV pupil position
@@ -107,6 +115,14 @@ namespace mug
 	 * \return Confidence in calculated gaze angles
 	 */
 	double getConfidence(const Sample &s, ModelType mt) const;
+	
+	/**
+	 * \brief Calculate confidence in the predicted gaze angles
+	 * using both eyes.
+	 * \param[in] s Sample object containing UV pupil position
+	 * \return Confidence in calculated gaze angles
+	 */
+	double getConfidence(const Sample &s) const {return getConfidence(s, EYE_BOTH);}
 
         void save(const std::string &filename);
 

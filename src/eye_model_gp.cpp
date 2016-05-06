@@ -214,10 +214,10 @@ void EyeModelGp::convertToGpInput(const Sample &s, ModelType mt, Eigen::VectorXd
 	}
         case EYE_OFFSET: 
 	{
-            x = Eigen::VectorXd(6);
+            x = Eigen::VectorXd(8);
             x << s.H_pos[0],s.H_pos[1],s.H_pos[2],
-               s.H_o[0],s.H_o[1],s.H_o[2];
-               //s.du/100, s.dv/100;
+               s.H_o[0],s.H_o[1],s.H_o[2],
+               s.du/100, s.dv/100;
             yu = s.target_pos[0];
             yv = s.target_pos[1];
             break;
@@ -235,8 +235,9 @@ void EyeModelGp::convertToGpInput(const Sample &s, ModelType mt, Eigen::VectorXd
         case EYE_LEFT:
 	{
             x = Eigen::VectorXd(INPUT_DIM_MONOCULAR);
-            x << s.H_pos, s.H_o, 
-               s.px_left, s.py_left;
+            x << s.H_pos[0], s.H_pos[1], s.H_pos[2],
+	       s.H_o[0], s.H_o[1], s.H_o[2], 
+               (double)s.px_left, (double)s.py_left;
             yu = s.target_pos[0];
             yv = s.target_pos[1];
             break;
@@ -244,8 +245,9 @@ void EyeModelGp::convertToGpInput(const Sample &s, ModelType mt, Eigen::VectorXd
         case EYE_RIGHT:
 	{
             x = Eigen::VectorXd(INPUT_DIM_MONOCULAR);
-            x << s.H_pos, s.H_o, 
-               s.px_right, s.py_right;
+            x << s.H_pos[0], s.H_pos[1], s.H_pos[2],
+	       s.H_o[0], s.H_o[1], s.H_o[2], 
+               (double)s.px_right, (double)s.py_right;
             yu = s.target_pos[0];
             yv = s.target_pos[1];
             break;
@@ -253,9 +255,10 @@ void EyeModelGp::convertToGpInput(const Sample &s, ModelType mt, Eigen::VectorXd
         case EYE_BOTH:
 	{
             x = Eigen::VectorXd(INPUT_DIM_BINOCULAR);
-            x << s.H_pos, s.H_o, 
-               s.px_left,  s.py_left,
-               s.px_right, s.py_right;
+            x << s.H_pos[0], s.H_pos[1], s.H_pos[2],
+	       s.H_o[0], s.H_o[1], s.H_o[2],
+               (double)s.px_left,  (double)s.py_left,
+               (double)s.px_right, (double)s.py_right;
             yu = s.target_pos[0];
             yv = s.target_pos[1];
             break;

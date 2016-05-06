@@ -45,6 +45,7 @@ namespace mug
             //Quaternionf H_o;          ///< Head orientation as quaternion 
             Vector3f H_o;               ///< Head orientation in Euler angles [rad]
             Vector2f target_pos;        ///< Screen position of fixation target [px]
+            float du, dv;               ///< Eye offset
             float yaw;                  ///< Eye azimuth [rad]
             float pitch;                ///< Eye inclination [rad]
     };
