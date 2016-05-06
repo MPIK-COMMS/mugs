@@ -38,7 +38,7 @@ double evaluateTracker( const GazeTracker<EyeModelSubject> &gt, Samples samples,
     {
         Sample &s = *it;
 
-        Vector3f uv = gt.getScreenUV(s.H_pos, s.H_o, s);
+        Vector3f uv = gt.getScreenUV(s);
 
         double eu = fabs(uv[0] - s.target_pos[0]);
         double ev = fabs(uv[1] - s.target_pos[1]);

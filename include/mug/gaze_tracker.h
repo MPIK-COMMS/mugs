@@ -59,9 +59,7 @@ namespace mug
          */
         inline void calibrate(const Samples &trainingData)
         {
-	    std::cout << "calculating eye transform..." << std::endl;
             findEyeTransform<EyeModelT>(trainingData, screen, T_trans, T_rot);
-            std::cout << "done" << std::endl;
 	    
             // calculate true gaze angles based on current head eye transform
             std::vector<Vector2f> pupils;
@@ -81,11 +79,10 @@ namespace mug
          * \brief Calculates gaze vector and projects it onto display surface.
          * \return 2D screen coordinate and confidence.
          */
-        inline Eigen::Vector3f getScreenUV(const Eigen::Vector3f &H_pos, const Eigen::Vector3f &H_o, 
-                const Sample &s) const
+        inline Eigen::Vector3f getScreenUV(const Sample &s) const
         {
             Eigen::Vector2f gazeAngles = eyeModel.predict(s);
-	    Eigen::Vector2f scrProjection = screen.project(H_pos, H_o, T_trans, T_rot, gazeAngles[0], gazeAngles[1]);
+	    Eigen::Vector2f scrProjection = screen.project(s.H_pos, s.H_o, T_trans, T_rot, gazeAngles[0], gazeAngles[1]);
 	    double conf = eyeModel.getConfidence(s);
 	    return Eigen::Vector3f(
 	        scrProjection[0],
