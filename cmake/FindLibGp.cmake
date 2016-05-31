@@ -10,7 +10,7 @@ pkg_check_modules(PC_LIBGP QUIET libgp)
 set(LIBGP_DEFINITIONS ${PC_LIBGP_CFLAGS_OTHER})
 
 find_path(LIBGP_INCLUDE_DIR gp.h
-          HINTS ${PC_LIBGP_INCLUDEDIR} ${PC_LIBGP_INCLDE_DIRS}
+          HINTS ${PC_LIBGP_INCLUDEDIR} ${PC_LIBGP_INCLUDE_DIRS}
           PATH_SUFFIXES gp)
 
 find_library(LIBGP_LIBRARY names gp

@@ -39,6 +39,7 @@ project(MUG)
 find_package(Eigen REQUIRED)
 find_package(LibGp REQUIRED)
 find_package(Boost COMPONENTS system thread timer filesystem REQUIRED)
+SET(LIBLSL_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/liblsl/liblsl.so)
 
 include_directories(${EIGEN_INCLUDE_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
@@ -61,6 +62,7 @@ set(SOURCE
 add_library (mug  ${SOURCE})
 target_link_libraries(mug
     ${LIBGP_LIBRARIES}
+    ${LIBLSL_LIBRARY}
     ${Boost_THREAD_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY} 
     ${Boost_SYSTEM_LIBRARY} 

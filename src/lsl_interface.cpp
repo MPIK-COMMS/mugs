@@ -20,6 +20,7 @@
 
 #include "liblsl/lsl_cpp.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "mug/lsl_interface.h"
 #include "mug/sample.h"
@@ -30,11 +31,17 @@ using namespace mug;
 std::vector< Sample > LslInterface::fetchDataWStim(int terminal)
 {
     // resolve head stream
+    printf("[MUGS LslInterface] Resolving head tracker stream...");
     std::vector<stream_info> resultsHead = resolve_stream("name", this->headStreamName);
+    printf(" DONE\n");
     // resolve eye stream
+    printf("[MUGS LslInterface] Resolving eye tracker stream...");
     std::vector<stream_info> resultsEye = resolve_stream("name", this->eyeStreamName);
+    printf(" DONE\n");
     // resolve stimulus stream
+    printf("[MUGS LslInterface] Resolving stimulus stream...");
     std::vector<stream_info> resultsStim = resolve_stream("name", this->stimStreamName);
+    printf(" DONE\n");
     
     // get inlets for all three streams
     stream_inlet head(resultsHead[0]);
@@ -64,9 +71,13 @@ std::vector< Sample > LslInterface::fetchDataWStim(int terminal)
 std::vector< Sample > LslInterface::fetchDataWoStim()
 {
     // resolve head stream
+    printf("[MUGS LslInterface] Resolving head tracker stream...");
     std::vector<stream_info> resultsHead = resolve_stream("name", this->headStreamName);
+    printf(" DONE\n");
     // resolve eye stream
+    printf("[MUGS LslInterface] Resolving eye tracker stream...");
     std::vector<stream_info> resultsEye = resolve_stream("name", this->eyeStreamName);
+    printf(" DONE\n");
     
     // get inlets for both streams
     stream_inlet head(resultsHead[0]);
