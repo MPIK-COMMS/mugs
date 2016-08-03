@@ -32,20 +32,6 @@ namespace mug
 
     class Sample;
     
-    /**
-     * \brief Enumeration type to distinguesh different models
-     * used in the Gaussian Process Regression.
-     */
-    enum ModelType
-    {
-        EYE_LEFT  = 1,
-        EYE_RIGHT = 2,
-        EYE_BOTH  = 3,
-        PUPIL     = 4,
-        EYE_OFFSET = 5,
-        HEAD_ONLY  = 6
-    };
-
     /** 
      * \brief Eye model using Gaussian Process Regression to map pupil positions 
      * to gaze angles. 

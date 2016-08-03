@@ -89,6 +89,21 @@ namespace mug
 		scrProjection[1],
 		conf);
         }
+        
+        /** 
+         * \brief Calculates gaze vector and projects it onto display surface.
+         * \return 2D screen coordinate and confidence.
+         */
+        inline Eigen::Vector3f getScreenUV(const Sample &s, ModelType mt) const
+        {
+            Eigen::Vector2f gazeAngles = eyeModel.predict(s, mt);
+	    Eigen::Vector2f scrProjection = screen.project(s.H_pos, s.H_o, T_trans, T_rot, gazeAngles[0], gazeAngles[1]);
+	    double conf = eyeModel.getConfidence(s);
+	    return Eigen::Vector3f(
+	        scrProjection[0],
+		scrProjection[1],
+		conf);
+        }
 
     private:
         EyeModelT eyeModel;         ///< Used to map pupil positions to gaze angles

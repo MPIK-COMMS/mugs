@@ -52,12 +52,33 @@ namespace mug
          * \param[in] s Sample object containing UV pupil position 
          * \return 2D vector containing yaw and pitch angle in radians.
          */
-        Eigen::Vector2f predict(const Sample &s) const
-        {
-	    Eigen::VectorXf pupil = Eigen::VectorXf(2);
-	    pupil[0] = s.px_left;
-	    pupil[1] = s.py_left;
-	    return predict(pupil);
+        Eigen::Vector2f predict(const Sample &s) const {return predict(s, EYE_LEFT);}
+	
+	/** 
+         * \brief Predict gaze angles based on pupil position
+         * \param[in] s Sample object containing UV pupil position 
+	 * \param[in] mt ModelType that specifies the used eye
+         * \return 2D vector containing yaw and pitch angle in radians.
+         */
+	Eigen::Vector2f predict(const Sample &s, ModelType mt) const
+	{
+	    switch(mt)
+	    {
+		case EYE_RIGHT:
+		{
+		    Eigen::VectorXf pupil = Eigen::VectorXf(2);
+	            pupil[0] = s.px_right;
+	            pupil[1] = s.py_right;
+	            return predict(pupil);
+		}
+		default:
+		{
+	            Eigen::VectorXf pupil = Eigen::VectorXf(2);
+	            pupil[0] = s.px_left;
+	            pupil[1] = s.py_left;
+	            return predict(pupil);
+		}
+	    }
 	}
 	
 	/**
@@ -65,7 +86,15 @@ namespace mug
 	 * \param[in] s Sample object containing UV pupil position.
 	 * \return Confidence in predicted ganze angles.
 	 */
-	inline double getConfidence(const Sample &s) const
+	inline double getConfidence(const Sample &s) const {return getConfidence(s, EYE_LEFT);}
+	
+	/**
+	 * \brief Calculate confidence in predicted gaze angles
+	 * \param[in] s Sample object containing UV pupil position.
+	 * \param[in] mt ModelType that specifies the used eye
+	 * \return Confidence in predicted ganze angles.
+	 */
+	inline double getConfidence(const Sample &s, ModelType mt) const
 	{
 	    // Currently, no convidence evaluation implemented!
 	    return 0.0;
