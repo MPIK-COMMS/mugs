@@ -42,6 +42,34 @@ namespace mug
     public:
         static const int INPUT_DIM_MONOCULAR;
         static const int INPUT_DIM_BINOCULAR;
+	
+	/**
+	 * \brief Constructor of the EyeModelGp class.
+	 */
+	EyeModelGp()
+	{
+	    this->mt = EYE_BOTH;
+	}
+	
+	/**
+	 * \brief Constructor of the EyeModelGp class.
+	 * \param[in] mt ModelType that will be used for this instance of EyeModelLinear.
+	 */
+	EyeModelGp(ModelType mt)
+	{
+	    this->mt = mt;
+	}
+	
+	/**
+	 * \brief Setter function for the member variable mt
+	 * \param[in] mt ModelType value for member variable mt
+	 */
+	void setModelType (ModelType mt) { this->mt = mt; }
+	
+	/**
+	 * \brief Getter function for the member variable mt
+	 */
+	ModelType getModelType () { return this->mt; }
 
 	/** 
          * \brief Create mapping from pupil positions to gaze angles (yaw, pitch).
@@ -53,14 +81,12 @@ namespace mug
 	
         /** 
          * \brief Create mapping from pupil positions to gaze angles (yaw, pitch).
-         * \param[in] samples Vector of mug::Sample containing pupil image positions 
-	 * \param[in] mt Type of model used for the GPR (default = EYE_LEFT)
+         * \param[in] samples Vector of mug::Sample containing pupil image positions
          * \param[in] cov String specifying kernel for building covariance matrix (default = "CovSum ( CovSEard, CovNoise)")
          * \param[in] optimizeParameters If true, GP hyper-parameters are optimized (default = true)
          * \param[in] numOptimizationSamples Number of samples used for hyper-parameter optimization (default = 200)
          */
-        void fit(const std::vector<Sample> &samples, 
-		ModelType mt = EYE_BOTH, 
+        void fit(const std::vector<Sample> &samples,
                 const std::string cov = default_cov(), 
                 bool optimizeParameters = true, 
                 int numOptimizationSamples = 200);
@@ -71,44 +97,25 @@ namespace mug
          * expected variance, use \ref predict(const Sample &s) instead for 
          * increased performance.
          * \param[in] s Sample object containing UV pupil position 
-	 * \param[in] mt Type of model used for the GPR
          * \param[out] varX Estimated prediction variance in X [px]
          * \param[out] varY Estimated prediction variance in Y [px]
          * \return 2D vector containing yaw and pitch angle in radians.
          */
-        Eigen::Vector2f predict(const Sample &s, ModelType mt, double &varX, double &varY) const;
+        Eigen::Vector2f predict(const Sample &s, double &varX, double &varY) const;
 
         /** 
          * \brief Predict gaze angles based on pupil position
          * \param[in] s Sample object containing UV pupil position 
-	 * \param[in] mt Type of model used for the GPR
          * \return 2D vector containing yaw and pitch angle in radians.
          */
-        Eigen::Vector2f predict(const Sample &s, ModelType mt) const;
-	
-	/** 
-         * \brief Predict gaze angles based on pupil position using
-	 * both eyes. 
-         * \param[in] s Sample object containing UV pupil position 
-         * \return 2D vector containing yaw and pitch angle in radians.
-         */
-        Eigen::Vector2f predict(const Sample &s) const {return predict(s, EYE_BOTH);}
+        Eigen::Vector2f predict(const Sample &s) const;
 	
 	/**
 	 * \brief Calculate confidence in the predicted gaze angles
 	 * \param[in] s Sample object containing UV pupil position
-	 * \param[in] mt Type of model used for the GPR
 	 * \return Confidence in calculated gaze angles
 	 */
-	double getConfidence(const Sample &s, ModelType mt) const;
-	
-	/**
-	 * \brief Calculate confidence in the predicted gaze angles
-	 * using both eyes.
-	 * \param[in] s Sample object containing UV pupil position
-	 * \return Confidence in calculated gaze angles
-	 */
-	double getConfidence(const Sample &s) const {return getConfidence(s, EYE_BOTH);}
+	double getConfidence(const Sample &s) const;
 
         void save(const std::string &filename);
 
@@ -132,6 +139,7 @@ namespace mug
     private:
         std::auto_ptr<libgp::GaussianProcess> gpU;
         std::auto_ptr<libgp::GaussianProcess> gpV;
+	ModelType mt;       /// specifies which eye should be used for regression
 
         inline int param_dim() const 
         { 
@@ -142,18 +150,17 @@ namespace mug
         }
 
 
-        void sampleVecToMat(const std::vector<Sample> &samples, ModelType mt, 
+        void sampleVecToMat(const std::vector<Sample> &samples, 
 		Eigen::MatrixXd &X, Eigen::VectorXd &yu, Eigen::VectorXd &yv) const;
 	
         /**
 	 * \brief Convert \ref Sample object into a matrix that can used as input for GPR.
 	 * \param[in] s Sample object.
-	 * \param[in] mt Type of model used for the GPR.
 	 * \param[out] x Vector used to store the input data.
 	 * \param[out] yu Stores x coordinate of the target.
 	 * \param[out] yv Stores y coordinate of the target.
 	 */
-        void convertToGpInput(const Sample &s,  ModelType mt, Eigen::VectorXd &x, double &yu, double &yv) const;
+        void convertToGpInput(const Sample &s, Eigen::VectorXd &x, double &yu, double &yv) const;
 
 	
 	Eigen::Vector2f predict(const Eigen::VectorXd &x) const;

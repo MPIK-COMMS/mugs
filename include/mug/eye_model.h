@@ -64,13 +64,6 @@ namespace mug
          */
         virtual Eigen::Vector2f predict(const Sample &s) const = 0;
 	
-	/** 
-         * \brief Predict gaze angles based on pupil position
-         * \param[in] s Sample object containing UV pupil position.
-	 * \param[in] mt ModelType that specifies the used eye.
-         * \return 2D vector containing yaw and pitch angle in radians.
-         */
-        virtual Eigen::Vector2f predict(const Sample &s, ModelType mt) const = 0;
 	
 	/**
 	 * \brief Calculate confidence in predicted gaze angles
@@ -78,14 +71,6 @@ namespace mug
 	 * \return Confidence in predicted ganze angles.
 	 */
 	virtual double getConfidence(const Sample &s) const = 0;
-	
-	/**
-	 * \brief Calculate confidence in predicted gaze angles
-	 * \param[in] s Sample object containing UV pupil position.
-	 * \param[in] mt ModelType that specifies the used eye.
-	 * \return Confidence in predicted ganze angles.
-	 */
-	virtual double getConfidence(const Sample &s, ModelType mt) const = 0;
 
     };
 }

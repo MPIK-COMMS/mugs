@@ -37,6 +37,40 @@ namespace mug
     class EyeModelMoore : public EyeModel
     {
     public:
+        /**
+	 * \brief Constructor of the EyeModelMoore class.
+	 */
+	EyeModelMoore()
+	{
+	    this->mt = EYE_LEFT;
+	}
+	
+	/**
+	 * \brief Constructor of the EyeModelMoore class.
+	 * \param[in] mt ModelType that will be used for this instance of EyeModelLinear.
+	 */
+	EyeModelMoore(ModelType mt)
+	{
+	    this->mt = mt;
+	}
+	
+	/**
+	 * \brief Setter function for the member variable mt
+	 * \param[in] mt ModelType value for member variable mt
+	 */
+	void setModelType (ModelType mt)
+	{
+	    this->mt = mt;
+	}
+	
+	/**
+	 * \brief Getter function for the member variable mt
+	 */
+	ModelType getModelType ()
+	{
+	    return this->mt;
+	}
+      
         /** 
          * \brief Create mapping from pupil positions to gaze angles (yaw, pitch).
          * \param[in] pupilPositions Vector of 2D positions in the eye tracker camera image 
@@ -44,23 +78,15 @@ namespace mug
          */
         void fit(const std::vector<Eigen::Vector2f> &pupilPositions,  
                  const std::vector<Eigen::Vector2f> &gazeAngles);
-
-	/** 
-         * \brief Predict gaze angles based on pupil position
-         * \param[in] s Sample object containing UV pupil position.
-         * \return 2D vector containing yaw and pitch angle in radians.
-         */
-        virtual Eigen::Vector2f predict(const Sample &s) const {return predict(s, EYE_LEFT);}
 	
         /** 
          * \brief Predict gaze angles based on pupil position
          * \param[in] s Sample object containing UV pupil position.
-	 * \param[in] mt ModelType that specifies the used eye.
          * \return 2D vector containing yaw and pitch angle in radians.
          */
-        virtual Eigen::Vector2f predict(const Sample &s, ModelType mt) const
+        virtual Eigen::Vector2f predict(const Sample &s) const
         {
-	    switch(mt)
+	    switch(this->mt)
 	    {
 		case EYE_RIGHT:
 		{
@@ -84,15 +110,7 @@ namespace mug
 	 * \param[in] s Sample object containing UV pupil position.
 	 * \return Confidence in predicted ganze angles.
 	 */
-	inline double getConfidence(const Sample &s) const {return getConfidence(s, EYE_LEFT);}
-	
-	/**
-	 * \brief Calculate confidence in predicted gaze angles
-	 * \param[in] s Sample object containing UV pupil position.
-	 * \param[in] mt ModelType that specifies the used eye.
-	 * \return Confidence in predicted ganze angles.
-	 */
-	inline double getConfidence(const Sample &s, ModelType mt) const
+	inline double getConfidence(const Sample &s) const
 	{
 	    // Currently, no confidence evaluation implemented!
 	    return 0.0;
@@ -100,6 +118,7 @@ namespace mug
 
     private:
         Eigen::MatrixXd A;  /// eye model coefficients
+        ModelType mt;       /// specifies which eye should be used for regression
         
         /** 
          * \brief Predict gaze angles based on pupil position
