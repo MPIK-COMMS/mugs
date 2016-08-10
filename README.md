@@ -26,14 +26,6 @@ make -j4
 sudo make install
 ```
 
-### Build and run example (optional):
-```bash
-cd examples
-cmake .
-make -j4
-./train_model
-```
-
 ## Contact
 
 If you have questions or issues please contact us
