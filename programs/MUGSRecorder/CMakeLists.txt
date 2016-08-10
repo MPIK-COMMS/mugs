@@ -21,8 +21,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../3rdparty)
 
 link_directories(/usr/local/lib)
 
-add_executable(train_model ${CMAKE_CURRENT_SOURCE_DIR}/mugs_evaluator.cpp)
-target_link_libraries(mugs_evaluator
+add_executable(train_model ${CMAKE_CURRENT_SOURCE_DIR}/mugs_recorder.cpp)
+target_link_libraries(mugs_recorder
     /usr/local/lib/libmug.a
     ${LIBGP_LIBRARIES} 
     ${Boost_THREAD_LIBRARY}
