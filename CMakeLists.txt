@@ -56,7 +56,7 @@ set(SOURCE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/eye_model_gp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/eye_model_gp_optimization.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/lsl_interface.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/preprocessing.cpp
+#    ${CMAKE_CURRENT_SOURCE_DIR}/src/preprocessing.cpp
     )
 
 # create target library

@@ -19,11 +19,19 @@ https://bitbucket.org/mblum/libgp
 
 #### Build library:
 
-In mug directory, type:
+In mugs directory, type:
 ```bash
-cmake .
+mkdir build
+cd build
+cmake ..
 make -j4
 sudo make install
+```
+
+#### Build programs
+In mugs directory, type:
+```bash
+*TODO*
 ```
 
 ## Contact

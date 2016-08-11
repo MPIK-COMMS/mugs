@@ -99,4 +99,7 @@ std::vector<int> saccadeFilter_velocity (std::vector<Sample> & s, ModelType mt, 
             polar_eye.push_back(cart2pol(*it.px_left - meanPos[0], *it.py_left - meanPos[1]));
         }
     }
+    
+    //TODO finish filter method
+    return markerChanges; //this is just a auxiliary return statement! Needs to be changed in the final version
 }
