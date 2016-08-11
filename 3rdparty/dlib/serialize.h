@@ -4,9 +4,8 @@
 #define DLIB_SERIALIZe_
 
 /*!
-    There are two global functions in the dlib namespace that provide 
-    serialization and deserialization support.  Their signatures and specifications
-    are as follows:
+    There are two global functions in the dlib namespace that provide serialization and
+    deserialization support.  Their signatures and specifications are as follows:
         
         void serialize (
             const serializable_type& item,
@@ -47,12 +46,23 @@
                 - any other exception
         *!/
 
+    For convenience, you can also serialize to a file using this syntax:
+        serialize("your_file.dat") << some_object << another_object;
+
+    That overwrites the contents of your_file.dat with the serialized data from some_object
+    and another_object.  Then to recall the objects from the file you can do:
+        deserialize("your_file.dat") >> some_object >> another_object;
+
+    Finally, you can chain as many objects together using the << and >> operators as you
+    like.
+
 
     This file provides serialization support to the following object types:
         - The C++ base types (NOT including pointer types)
         - std::string
         - std::wstring
         - std::vector
+        - std::deque
         - std::map
         - std::set
         - std::pair
@@ -70,6 +80,7 @@
         - std::string
         - std::wstring
         - std::vector
+        - std::deque
         - std::map
         - std::set
         - std::pair
@@ -131,8 +142,10 @@
 #include <iomanip>
 #include <cstddef>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
+#include <deque>
 #include <complex>
 #include <map>
 #include <set>
@@ -142,9 +155,9 @@
 #include "interfaces/map_pair.h"
 #include "enable_if.h"
 #include "unicode.h"
-#include "unicode.h"
 #include "byte_orderer.h"
 #include "float_details.h"
+#include "smart_pointers/shared_ptr.h"
 
 namespace dlib
 {
@@ -642,6 +655,18 @@ namespace dlib
         std::istream& in
     );
 
+    template <typename T, typename alloc>
+    void serialize (
+        const std::deque<T,alloc>& item,
+        std::ostream& out
+    );
+
+    template <typename T, typename alloc>
+    void deserialize (
+        std::deque<T,alloc>& item,
+        std::istream& in
+    );
+
     inline void serialize (
         const std::string& item,
         std::ostream& out
@@ -649,6 +674,26 @@ namespace dlib
 
     inline void deserialize (
         std::string& item,
+        std::istream& in
+    );
+
+    inline void serialize (
+        const std::wstring& item,
+        std::ostream& out
+    );
+
+    inline void deserialize (
+        std::wstring& item,
+        std::istream& in
+    );
+
+    inline void serialize (
+        const ustring& item,
+        std::ostream& out
+    );
+
+    inline void deserialize (
+        ustring& item,
         std::istream& in
     );
 
@@ -1007,6 +1052,44 @@ namespace dlib
 
 // ----------------------------------------------------------------------------------------
 
+    template <typename T, typename alloc>
+    void serialize (
+        const std::deque<T,alloc>& item,
+        std::ostream& out
+    )
+    {
+        try
+        { 
+            const unsigned long size = static_cast<unsigned long>(item.size());
+
+            serialize(size,out); 
+            for (unsigned long i = 0; i < item.size(); ++i)
+                serialize(item[i],out);
+        }
+        catch (serialization_error& e)
+        { throw serialization_error(e.info + "\n   while serializing object of type std::deque"); }
+    }
+
+    template <typename T, typename alloc>
+    void deserialize (
+        std::deque<T, alloc>& item,
+        std::istream& in
+    )
+    {
+        try 
+        { 
+            unsigned long size;
+            deserialize(size,in); 
+            item.resize(size);
+            for (unsigned long i = 0; i < size; ++i)
+                deserialize(item[i],in);
+        }
+        catch (serialization_error& e)
+        { throw serialization_error(e.info + "\n   while deserializing object of type std::deque"); }
+    }
+
+// ----------------------------------------------------------------------------------------
+
     inline void serialize (
         const std::string& item,
         std::ostream& out
@@ -1176,6 +1259,41 @@ namespace dlib
         }
     }
 
+    template <
+        size_t length
+        >
+    inline void serialize (
+        const char (&array)[length],
+        std::ostream& out
+    )
+    {
+        if (length != 0 && array[length-1] == '\0')
+        {
+            // If this is a null terminated string then don't serialize the trailing null.
+            // We do this so that the serialization format for C-strings is the same as
+            // std::string.
+            serialize(length-1, out);
+            out.write(array, length-1);
+            if (!out)
+                throw serialization_error("Error serializing a C-style string");
+        }
+        else 
+        {
+            try
+            {
+                serialize(length,out);
+            }
+            catch (serialization_error& e)
+            {
+                throw serialization_error(e.info + "\n   while serializing a C style array");
+            }
+            if (length != 0)
+                out.write(array, length);
+            if (!out)
+                throw serialization_error("Error serializing a C-style string");
+        }
+    }
+
 // ----------------------------------------------------------------------------------------
 
     template <
@@ -1204,6 +1322,45 @@ namespace dlib
 
         if (size != length)
             throw serialization_error("Error deserializing a C style array, lengths do not match");
+    }
+
+    template <
+        size_t length
+        >
+    inline void deserialize (
+        char (&array)[length],
+        std::istream& in
+    )
+    {
+        size_t size;
+        try
+        {
+            deserialize(size,in); 
+        }
+        catch (serialization_error& e)
+        {
+            throw serialization_error(e.info + "\n   while deserializing a C style array");
+        }
+
+        if (size == length)
+        {
+            in.read(array, size);
+            if (!in)
+                throw serialization_error("Error deserializing a C-style array");
+        }
+        else if (size+1 == length)
+        {
+            // In this case we are deserializing a C-style array so we need to add the null
+            // terminator.
+            in.read(array, size);
+            array[size] = '\0';
+            if (!in)
+                throw serialization_error("Error deserializing a C-style string");
+        }
+        else
+        {
+            throw serialization_error("Error deserializing a C style array, lengths do not match");
+        }
     }
 
 // ----------------------------------------------------------------------------------------
@@ -1251,6 +1408,60 @@ namespace dlib
     }
 
 // ----------------------------------------------------------------------------------------
+
+    class proxy_serialize 
+    {
+    public:
+        explicit proxy_serialize (
+            const std::string& filename
+        ) 
+        {
+            fout.reset(new std::ofstream(filename.c_str(), std::ios::binary));
+            if (!(*fout))
+                throw serialization_error("Unable to open " + filename + " for writing.");
+        }
+
+        template <typename T>
+        inline proxy_serialize& operator<<(const T& item)
+        {
+            serialize(item, *fout);
+            return *this;
+        }
+
+    private:
+        shared_ptr<std::ofstream> fout;
+    };
+
+    class proxy_deserialize 
+    {
+    public:
+        explicit proxy_deserialize (
+            const std::string& filename
+        ) 
+        {
+            fin.reset(new std::ifstream(filename.c_str(), std::ios::binary));
+            if (!(*fin))
+                throw serialization_error("Unable to open " + filename + " for reading.");
+        }
+
+        template <typename T>
+        inline proxy_deserialize& operator>>(T& item)
+        {
+            deserialize(item, *fin);
+            return *this;
+        }
+
+    private:
+        shared_ptr<std::ifstream> fin;
+    };
+
+    inline proxy_serialize serialize(const std::string& filename)
+    { return proxy_serialize(filename); }
+    inline proxy_deserialize deserialize(const std::string& filename)
+    { return proxy_deserialize(filename); }
+
+// ----------------------------------------------------------------------------------------
+
 }
 
 // forward declare the MessageLite object so we can reference it below.

@@ -1,7 +1,7 @@
 // Copyright (C) 2013  Davis E. King (davis@dlib.net)
 // License: Boost Software License   See LICENSE.txt for the full license.
-#ifndef DLIB_SEQUENCE_SeGMENTER_H___
-#define DLIB_SEQUENCE_SeGMENTER_H___
+#ifndef DLIB_SEQUENCE_SeGMENTER_H_h_
+#define DLIB_SEQUENCE_SeGMENTER_H_h_
 
 #include "sequence_segmenter_abstract.h"
 #include "../matrix.h"
@@ -129,9 +129,9 @@ namespace dlib
 
             template <typename EXP>
             bool reject_labeling (
-                const sequence_type& ,
+                const sequence_type& x,
                 const matrix_exp<EXP>& y,
-                unsigned long 
+                unsigned long pos
             ) const
             {
                 if (ss_feature_extractor::use_BIO_model)
@@ -177,6 +177,15 @@ namespace dlib
                             return true;
                         if (y(1) == UNIT && y(0) == LAST)
                             return true;
+
+                        // if at the end of the sequence
+                        if (pos == x.size()-1)
+                        {
+                            if (y(0) == BEGIN)
+                                return true;
+                            if (y(0) == INSIDE)
+                                return true;
+                        }
                     }
                     else
                     {
@@ -184,6 +193,13 @@ namespace dlib
                             return true;
                         if (y(0) == LAST)
                             return true;
+
+                        // if at the end of the sequence
+                        if (pos == x.size()-1)
+                        {
+                            if (y(0) == BEGIN)
+                                return true;
+                        }
                     }
                 }
                 return false;
@@ -447,6 +463,6 @@ namespace dlib
 
 }
 
-#endif // DLIB_SEQUENCE_SeGMENTER_H___
+#endif // DLIB_SEQUENCE_SeGMENTER_H_h_
 
 

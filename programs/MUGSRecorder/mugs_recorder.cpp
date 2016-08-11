@@ -32,7 +32,7 @@ using namespace mug;
 
 // A helper function to simplify the main part.
 template<class T>
-ostream& operator<<(ostream& os, const vector<T>& v)
+std::ostream& operator<<(std::ostream& os, const std::vector<T>& v)
 {
     std::copy(v.begin(), v.end(), std::ostream_iterator<T>(os, " ")); 
     return os;
@@ -50,12 +50,12 @@ int main (int argc, char** argv)
 	generic.add_options()
 	    ("help,h", "Show this help message.")
 	    ("version,v", "Print version string.")
-	    ("config,c", po::value<string>(&configFile), "Name of a file of a configuration.")
+	    ("config,c", po::value<std::string>(&configFile), "Name of a file of a configuration.")
 	    ;
 	
 	// Declare a group of options that will be allowed 
 	// both on command line and in a config file.
-	po::option_description config("Configuration");
+	po::options_description config("Configuration");
 	config.add_options()
 	    ("terminal,t", po::value<int>(&terminal)->default_value(-100), 
 	     "Dot position that is send to indicate the end of the stimulus sequence (Default: -100).")
@@ -116,7 +116,7 @@ int main (int argc, char** argv)
 	    return 1;
 	}
     }
-    catch (exception& e) {
+    catch (std::exception& e) {
         std::cerr << "Error: " << e.what() << "\n";
 	return 1;
     }
