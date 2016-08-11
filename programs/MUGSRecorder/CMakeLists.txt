@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
-project(MugExamples)
+project(MugsRecorder)
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake)
 
 find_package(Eigen REQUIRED)
 find_package(LibGp REQUIRED)
@@ -21,7 +21,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../3rdparty)
 
 link_directories(/usr/local/lib)
 
-add_executable(train_model ${CMAKE_CURRENT_SOURCE_DIR}/mugs_recorder.cpp)
+add_executable(mugs_recorder ${CMAKE_CURRENT_SOURCE_DIR}/mugs_recorder.cpp)
 target_link_libraries(mugs_recorder
     /usr/local/lib/libmug.a
     ${LIBGP_LIBRARIES} 
