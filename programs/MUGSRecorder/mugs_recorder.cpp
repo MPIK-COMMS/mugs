@@ -61,9 +61,9 @@ int main (int argc, char** argv)
 	     "Dot position that is send to indicate the end of the stimulus sequence (Default: -100).")
 	    ("output,o", po::value<std::string>(&outputFile)->default_value("samples.mugs"),
 	     "Output file that is used to store the predicted gaze positions.")
-	    ("head-stream,h", po::value<std::string>(&headStream), "Name of the LSL stream that sends the head coordinates.")
-	    ("eye-stream,e", po::value<std::string>(&eyeStream), "Name of the LSL stream that sends the eye coordinates.")
-	    ("stim-stream,s", po::value<std::string>(&stimStream)->default_value(""), 
+	    ("head-stream,H", po::value<std::string>(&headStream), "Name of the LSL stream that sends the head coordinates.")
+	    ("eye-stream,E", po::value<std::string>(&eyeStream), "Name of the LSL stream that sends the eye coordinates.")
+	    ("stim-stream,S", po::value<std::string>(&stimStream)->default_value(""), 
 	     "Name of the LSL stream that sends the stimulus coordinates.")
 	    ;
 	    
@@ -112,7 +112,7 @@ int main (int argc, char** argv)
 	
 	// Abort if either head or eye stream is not set
 	if ((vm.count("head-stream") == 0) || (vm.count("eye-stream") == 0)) {
-	    std::cerr << "Please set head AND eye stream" << std::endl;
+	    std::cerr << "ERROR: Please set head AND eye stream" << std::endl;
 	    return 1;
 	}
     }

@@ -31,17 +31,17 @@ using namespace mug;
 std::vector< Sample > LslInterface::fetchDataWStim(int terminal)
 {
     // resolve head stream
-    printf("[MUGS LslInterface] Resolving head tracker stream...");
+    std::cout << "[MUGS LslInterface] Resolving head tracker stream..." << std::endl;
     std::vector<stream_info> resultsHead = resolve_stream("name", this->headStreamName);
-    printf(" DONE\n");
+    std::cout << "  DONE\n" << std::endl;
     // resolve eye stream
-    printf("[MUGS LslInterface] Resolving eye tracker stream...");
+    std::cout << "[MUGS LslInterface] Resolving eye tracker stream...";
     std::vector<stream_info> resultsEye = resolve_stream("name", this->eyeStreamName);
-    printf(" DONE\n");
+    std::cout << "  DONE\n" << std::endl;
     // resolve stimulus stream
-    printf("[MUGS LslInterface] Resolving stimulus stream...");
+    std::cout << "[MUGS LslInterface] Resolving stimulus stream...";
     std::vector<stream_info> resultsStim = resolve_stream("name", this->stimStreamName);
-    printf(" DONE\n");
+    std::cout << "  DONE\n" << std::endl;
     
     // get inlets for all three streams
     stream_inlet head(resultsHead[0]);

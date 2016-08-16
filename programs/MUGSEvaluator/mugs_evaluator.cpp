@@ -49,7 +49,7 @@ std::ostream& operator<<(std::ostream& os, const std::vector<T>& v)
     return os;
 }
 
-double evaluateTracker( const GazeTracker<EyeModelSubject> &gt, Samples samples)
+double evaluateTracker( const GazeTracker<EyeModelGp> &gt, Samples samples)
 {
     double merr_u = 0; 
     double merr_v = 0;
@@ -78,7 +78,127 @@ double evaluateTracker( const GazeTracker<EyeModelSubject> &gt, Samples samples)
     return mse / samples.size();
 }
 
-double evaluateTracker( const GazeTracker<EyeModelSubject> &gt, Samples samples, std::ofstream &file)
+double evaluateTracker( const GazeTracker<EyeModelLinear> &gt, Samples samples)
+{
+    double merr_u = 0; 
+    double merr_v = 0;
+    double mse    = 0;
+    
+    for (std::vector<Sample>::iterator it = samples.begin(); it != samples.end(); it++)
+    {
+        Sample &s = *it;
+
+        Vector3f uv = gt.getScreenUV(s);
+
+        double eu = fabs(uv[0] - s.target_pos[0]);
+        double ev = fabs(uv[1] - s.target_pos[1]);
+
+        merr_u += eu;
+        merr_v += ev;
+        mse = sqrt(eu*eu + ev*ev);
+
+    }
+
+    merr_u /= samples.size();
+    merr_v /= samples.size();
+
+    std::cout << "Avg. errors u/v (px) : " << merr_u   << " " << merr_v << std::endl;
+
+    return mse / samples.size();
+}
+
+double evaluateTracker( const GazeTracker<EyeModelMoore> &gt, Samples samples)
+{
+    double merr_u = 0; 
+    double merr_v = 0;
+    double mse    = 0;
+    
+    for (std::vector<Sample>::iterator it = samples.begin(); it != samples.end(); it++)
+    {
+        Sample &s = *it;
+
+        Vector3f uv = gt.getScreenUV(s);
+
+        double eu = fabs(uv[0] - s.target_pos[0]);
+        double ev = fabs(uv[1] - s.target_pos[1]);
+
+        merr_u += eu;
+        merr_v += ev;
+        mse = sqrt(eu*eu + ev*ev);
+
+    }
+
+    merr_u /= samples.size();
+    merr_v /= samples.size();
+
+    std::cout << "Avg. errors u/v (px) : " << merr_u   << " " << merr_v << std::endl;
+
+    return mse / samples.size();
+}
+
+double evaluateTracker( const GazeTracker<EyeModelGp> &gt, Samples samples, std::ofstream &file)
+{
+    double merr_u = 0; 
+    double merr_v = 0;
+    double mse    = 0;
+    
+    for (std::vector<Sample>::iterator it = samples.begin(); it != samples.end(); it++)
+    {
+        Sample &s = *it;
+
+        Vector3f uv = gt.getScreenUV(s);
+
+        double eu = fabs(uv[0] - s.target_pos[0]);
+        double ev = fabs(uv[1] - s.target_pos[1]);
+
+        merr_u += eu;
+        merr_v += ev;
+        mse = sqrt(eu*eu + ev*ev);
+
+        file.precision(10);
+        file << uv[0] << " " << uv[1] << " " << uv[2] << std::endl;
+    }
+
+    merr_u /= samples.size();
+    merr_v /= samples.size();
+
+    std::cout << "Avg. errors u/v (px) : " << merr_u   << " " << merr_v << std::endl;
+
+    return mse / samples.size();
+}
+
+double evaluateTracker( const GazeTracker<EyeModelLinear> &gt, Samples samples, std::ofstream &file)
+{
+    double merr_u = 0; 
+    double merr_v = 0;
+    double mse    = 0;
+    
+    for (std::vector<Sample>::iterator it = samples.begin(); it != samples.end(); it++)
+    {
+        Sample &s = *it;
+
+        Vector3f uv = gt.getScreenUV(s);
+
+        double eu = fabs(uv[0] - s.target_pos[0]);
+        double ev = fabs(uv[1] - s.target_pos[1]);
+
+        merr_u += eu;
+        merr_v += ev;
+        mse = sqrt(eu*eu + ev*ev);
+
+        file.precision(10);
+        file << uv[0] << " " << uv[1] << " " << uv[2] << std::endl;
+    }
+
+    merr_u /= samples.size();
+    merr_v /= samples.size();
+
+    std::cout << "Avg. errors u/v (px) : " << merr_u   << " " << merr_v << std::endl;
+
+    return mse / samples.size();
+}
+
+double evaluateTracker( const GazeTracker<EyeModelMoore> &gt, Samples samples, std::ofstream &file)
 {
     double merr_u = 0; 
     double merr_v = 0;
@@ -156,7 +276,7 @@ int main(int argc, char ** argv)
 	if (vm.count("help")) {
 	    std::cout << "mugs_evaluator - A evaluation tool for MUGS\n\n"
 	              << "With this program, one can perform gaze prediction using MUGS for a given\n"
-		      << "training and test dataset. Both datasets has be stored in a mugs file format.\n\n";
+		      << "training and test dataset. Both datasets has to be stored in a mugs file format.\n\n";
 	    std::cout << visible << std::endl;
 	    return 0;
 	}
@@ -180,16 +300,7 @@ int main(int argc, char ** argv)
 	}
 	
 	// Check which eye model was specified by the user.
-	if (eyeModel == "EyeModelGp") {
-	    typedef EyeModelGp EyeModelSubject;
-            typedef EyeModelGp EyeModelScreen;
-	} else if (eyeModel == "EyeModelLinear") {
-	    typedef EyeModelLinear EyeModelSubject;
-            typedef EyeModelLinear EyeModelScreen;
-	} else if (eyeModel == "EyeModelMoore") {
-	    typedef EyeModelMoore EyeModelSubject;
-            typedef EyeModelMoore EyeModelScreen;
-	} else {
+	if ((eyeModel != "EyeModelGp") && (eyeModel != "EyeModelLinear") && (eyeModel != "EyeModelMoore")) {
 	    std::cerr << "Wrong argument for -m/--model: " << eyeModel
 	              << "\nValid arguments are EyeModelGp, EyeModelLinear and EyeModelMoore." 
 	              << std::endl;
@@ -217,11 +328,13 @@ int main(int argc, char ** argv)
     //
 
     // Run screen calibration if screen coefficients are unknown
-    if (optimizeScreen)
-    {
+    if (optimizeScreen) {
         std::vector<std::string> screenCalibrationFiles;
         screenCalibrationFiles.push_back(trainFile);
-        screen.calibrate<EyeModelScreen>(screenCalibrationFiles);
+	// use the eye model specified by the user
+	if (eyeModel == "EyeModelGp"){screen.calibrate<EyeModelGp>(screenCalibrationFiles);}
+	else if (eyeModel == "EyeModelLinear"){screen.calibrate<EyeModelLinear>(screenCalibrationFiles);}
+	else if (eyeModel == "EyeModelMoore"){screen.calibrate<EyeModelMoore>(screenCalibrationFiles);}
     }
 
     std::cout << "\nScreen coefficients:" << std::endl;
@@ -229,34 +342,80 @@ int main(int argc, char ** argv)
     std::cout << "  Orientation: " << screen.getOrientation().transpose() << std::endl;
 
     // Load previously recorded calibration data
-    mug::Samples trainSet = reduceSampleRate(4, loadSamples(trainFile));
+    Samples trainSet = reduceSampleRate(4, loadSamples(trainFile));
 
     // Create a gaze tracking object. 
     // We specify the eye model to be used and
     // pass an initialized screen model
-    mug::GazeTracker<EyeModelSubject> gt(screen);
-
-    // Calibrate gaze tracker using loaded data
-    std::cout << "\nCalibrating gaze tracker using " << trainSet.size() << " data samples..." << std::endl;
-    gt.calibrate(trainSet);
-    std::cout << "\nCalibration completed successfully" << std::endl;
-
-    // 
-    // Predict PORs using calibrated gaze tracker
-    // 
-   
-    std::cout << "\nEvaluating POR prediction on training data..." << std::endl;
-    evaluateTracker(gt, trainSet);
-
-    std::cout << "\nEvalutating PORs prediction on test data..." << std::endl;
-
-    // Load test data
+    // The used eye model was chosen by the user
     std::ofstream outStream;
-    outStream.open(outputFile.c_str());
-    mug::Samples testSet = reduceSampleRate(4, loadSamples(testFile));
+    if (eyeModel == "EyeModelGp"){
+        GazeTracker<EyeModelGp> gt(screen);
+	// Calibrate gaze tracker using loaded data
+        std::cout << "\nCalibrating gaze tracker using " << trainSet.size() << " data samples..." << std::endl;
+        gt.calibrate(trainSet);
+        std::cout << "\nCalibration completed successfully" << std::endl;
 
-    // Run tracker on test data
-    evaluateTracker(gt, testSet, outStream);
+        // 
+        // Predict PORs using calibrated gaze tracker
+        // 
+   
+        std::cout << "\nEvaluating POR prediction on training data..." << std::endl;
+        evaluateTracker(gt, trainSet);
+
+        std::cout << "\nEvalutating PORs prediction on test data..." << std::endl;
+
+        // Load test data
+        outStream.open(outputFile.c_str());
+        Samples testSet = reduceSampleRate(4, loadSamples(testFile));
+
+        // Run tracker on test data
+        evaluateTracker(gt, testSet, outStream);
+    } else if (eyeModel == "EyeModelLinear"){
+        GazeTracker<EyeModelLinear> gt(screen);
+	// Calibrate gaze tracker using loaded data
+        std::cout << "\nCalibrating gaze tracker using " << trainSet.size() << " data samples..." << std::endl;
+        gt.calibrate(trainSet);
+        std::cout << "\nCalibration completed successfully" << std::endl;
+
+        // 
+        // Predict PORs using calibrated gaze tracker
+        // 
+   
+        std::cout << "\nEvaluating POR prediction on training data..." << std::endl;
+        evaluateTracker(gt, trainSet);
+
+        std::cout << "\nEvalutating PORs prediction on test data..." << std::endl;
+
+        // Load test data
+        outStream.open(outputFile.c_str());
+        Samples testSet = reduceSampleRate(4, loadSamples(testFile));
+
+        // Run tracker on test data
+        evaluateTracker(gt, testSet, outStream);
+    } else if (eyeModel == "EyeModelMoore"){
+        GazeTracker<EyeModelMoore> gt(screen);
+	// Calibrate gaze tracker using loaded data
+        std::cout << "\nCalibrating gaze tracker using " << trainSet.size() << " data samples..." << std::endl;
+        gt.calibrate(trainSet);
+        std::cout << "\nCalibration completed successfully" << std::endl;
+
+        // 
+        // Predict PORs using calibrated gaze tracker
+        // 
+   
+        std::cout << "\nEvaluating POR prediction on training data..." << std::endl;
+        evaluateTracker(gt, trainSet);
+
+        std::cout << "\nEvalutating PORs prediction on test data..." << std::endl;
+
+        // Load test data
+        outStream.open(outputFile.c_str());
+        Samples testSet = reduceSampleRate(4, loadSamples(testFile));
+
+        // Run tracker on test data
+        evaluateTracker(gt, testSet, outStream);
+    }
     outStream.close();
 }
 
