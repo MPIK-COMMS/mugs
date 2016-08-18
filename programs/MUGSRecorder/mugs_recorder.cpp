@@ -127,8 +127,10 @@ int main (int argc, char** argv)
     
     // create LslInterface object
     LslInterface lslInterface(headStream, eyeStream, stimStream);
-
-    Samples samples = lslInterface.fetchDataWStim(terminal);
+    Samples samples;
+    
+    if (stimStream != ""){lslInterface.fetchDataWStim(samples, terminal);}
+    else {lslInterface.fetchDataWoStim(samples);}
 
     saveSamples(samples, "./results/test_lslInterface.txt");
 }
