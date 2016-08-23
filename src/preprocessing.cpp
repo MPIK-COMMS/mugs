@@ -24,6 +24,7 @@
 #endif
 
 #include <cmath>
+#include <math.h>
 #include <algorithm>
 #include <Eigen/Dense>
 #include <mug/sample.h>
@@ -35,32 +36,47 @@ using namespace mug;
 Vector2f cart2pol(float x, float y)
 {
     Vector2f pol;
-    pol[0] = atan2(x,y);   // calculate theta
-    pol[1] = hypot(x,y);   // calculate r
+    pol[0] = std::atan2(x,y);   // calculate theta
+    pol[1] = std::hypot(x,y);   // calculate r
     return pol;
 }
 
-Vector4f meanPosAndMarkerChanges (const std::vector<Sample> & s, std::vector<int> & markerChanges)
+void correctPolArtifacts(std::vector<Eigen::Vector2f> & pol)
+{
+    // threshold to decide whether the current jump is a polar artifact
+    float threshold = 2 * M_PI - 0.15;
+    for (std::vector<Eigen::Vector2f>::iterator it = pol.begin()+1; it != pol.end(); ++it)
+    {
+        float velo = std::abs((*it)[0] - (*(it-1))[0]);
+	if (velo >= threshold) {
+	    if ((*it)[0] > 0){
+	        (*it)[0] -= 2 * M_PI;
+	    } else {
+	        (*it)[0] += 2 * M_PI;
+	    }
+	}
+    }
+}
+
+Vector4f meanPosAndMarkerChanges (std::vector<Sample> & s, std::vector<int> & markerChanges)
 {
     float center_px_left, center_py_left, center_px_right, center_py_right;
     Vector4f meanPosition;
     int sampleSize = s.size();
-    int index = 0;
     Vector2f currentPosition = s[0].target_pos;
     
     // iterate over samples and sum up the eye coordinates as well as fill array of 
     // marker position changes.
     for(Samples::iterator it = s.begin(); it != s.end(); ++it)
     {
-        if (*it.target_pos != currentPosition)
+        if (it->target_pos != currentPosition)
 	{
-	    markerChanges.push_back(index);
+	    markerChanges.push_back(it - s.begin());
 	}
-        center_px_left += *it.px_left; 
-        center_py_left += *it.py_left;
-        center_px_right += *it.px_right;
-        center_py_right += *it.py_right;
-        index += 1;
+        center_px_left += it->px_left;
+        center_py_left += it->py_left;
+        center_px_right += it->px_right;
+        center_py_right += it->py_right;
     }
     
     // calculate mean value of x and y coordinate for both eyes
@@ -71,12 +87,12 @@ Vector4f meanPosAndMarkerChanges (const std::vector<Sample> & s, std::vector<int
     return meanPosition;
 }
 
-void removeSamples (std::vector<Sample> & s, std::vector<int> removableSamples)
+void removeSamples (std::vector<Sample> & s, std::vector<int[2]> removableAreas)
 {
-    s.erase(
-        std::remove_if(s.begin(), s.end(), [](Samples::interator it){
-	    return std::find(removableSamples.begin(), removableSamples.end(), it - s.begin()) != removableSamples.end();})
-    );
+    for (std::vector<int[2]>::iterator it = removableAreas.begin(); it != removableAreas.end(); ++it)
+    {
+        s.erase(s.begin() + *it[0], s.begin() + *it[1]);
+    }
 }
 
 std::vector<int> saccadeFilter_velocity (std::vector<Sample> & s, ModelType mt, bool remove = true)
@@ -85,18 +101,18 @@ std::vector<int> saccadeFilter_velocity (std::vector<Sample> & s, ModelType mt, 
     std::vector<int> markerChanges;
     Vector4f meanPos = meanPosAndMarkerChanges(s, markerChanges);
     
-    // Convert Cartesean into polar coordinates
+    // Convert centered Cartesean into polar coordinates
     std::vector<Vector2f> polar_eye;
     if(mt == EYE_RIGHT)
     {
         for(Samples::iterator it = s.begin(); it != s.end(); ++it)
         {
-            polar_eye.push_back(cart2pol(*it.px_right - meanPos[2], *it.py_right - meanPos[3]));
+            polar_eye.push_back(cart2pol(it->px_right - meanPos[2], it->py_right - meanPos[3]));
         }
     }else{
         for(Samples::iterator it = s.begin(); it != s.end(); ++it)
         {
-            polar_eye.push_back(cart2pol(*it.px_left - meanPos[0], *it.py_left - meanPos[1]));
+            polar_eye.push_back(cart2pol(it->px_left - meanPos[0], it->py_left - meanPos[1]));
         }
     }
     

@@ -29,12 +29,20 @@ namespace mug
     enum ModelType;
     
     /**
-     * \brief This function converts Euclidean coordinates into Polar coordinates
+     * \brief This function converts Euclidean coordinates into Polar coordinates.
      * \param[in] x X coordinate of the point.
      * \param[in] y Y coordinate of the point.
      * \return Polar coordinates (theta, r) of the point.
      */
     Eigen::Vector2f cart2pol(float x, float y);
+    
+    /**
+     * \brief This function corrects Polar coordinates of the eye for artifacts, which occure 
+     *        due to the conversion of Euclidean coordinates into Polar cordinates.
+     * \param[out] pol Vector of Eigen::Vector2f that stores the Polar coordinates 
+     *             of the eye.
+     */
+    void correctPolArtifacts(std::vector<Eigen::Vector2f> & pol);
 
     /**
      * \brief Calculates the mean position of both eyes. Additionally,
