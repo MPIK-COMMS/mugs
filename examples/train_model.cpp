@@ -1,6 +1,7 @@
 #include <string.h>
 #include <iostream>
 #include <stdio.h>
+#include <math.h>
 
 #include <mug/gaze_tracker.h>
 #include <mug/eye_model_linear.h>
@@ -25,8 +26,9 @@ typedef mug::EyeModelGp EyeModelSubject;
 typedef mug::EyeModelGp EyeModelScreen;
 #endif
 
-std::string dataDir    = "./data/";
-
+std::string dataDir   = "/home/jonas/Dokumente/MPI_biological_Cybernetics/MUGS/MUGS_data/train_move_condition/";
+std::string dataDir2  = "/home/jonas/Dokumente/MPI_biological_Cybernetics/MUGS/MUGS_data/reducedSamples_Bjoern_Exp/";
+std::string resultDir = "/home/jonas/Dokumente/MPI_biological_Cybernetics/MUGS/MUGS_data/cpp/results_moveCondition_filteredFiles/";
 
 double evaluateTracker( const GazeTracker<EyeModelSubject> &gt, Samples samples, std::ofstream &file)
 {
@@ -55,23 +57,28 @@ double evaluateTracker( const GazeTracker<EyeModelSubject> &gt, Samples samples,
     merr_v /= samples.size();
 
     std::cout << "Avg. errors u/v (px) : " << merr_u   << " " << merr_v << std::endl;
+    std::cout << "Root Mean Squared Error : " << sqrt(mse) << std::endl;
+    //std::cout << "Avg. confidence : " << mvar << std::endl
 
     return mse / samples.size();
 }
 
 int main(int argc, char ** argv)
 {
+    const char* subjects[] = {"bb", "cg", "cg2", "ch", "cm", "fd", "gk", "jb", "je", "kd", "lc2", "ms2"};
     bool optimizeScreen = false;
 
     std::cout << std::fixed << std::setprecision(2);
 
+    for (int i = 0; i < 14; ++i){
     // File containing calibration samples
 #if USE_LINEAR
-    std::string dataFile = dataDir + "move_train.txt";
+    std::string dataFile = dataDir + subjects[i] + "_move_train.txt";
 #else
-    std::string dataFile = dataDir + "move_train.txt";
+    //std::string dataFile = dataDir + subjects[i] + "/" + subjects[i] + "_hr_train.txt";
+    std::string dataFile = dataDir + subjects[i] + "_move_train.txt";
 #endif
-    std::string gazeFile = dataDir + "move_trainGaze.txt";
+    std::string gazeFile = resultDir + subjects[i] + "_move_trainGaze.txt";
     std::ofstream trainGaze;
     trainGaze.open(gazeFile.c_str());
 
@@ -120,8 +127,8 @@ int main(int argc, char ** argv)
 
     // Load test data
     trainGaze.close();
-    dataFile = dataDir + "move_test.txt";
-    gazeFile = dataDir + "move_testGaze.txt";
+    dataFile = dataDir2 + subjects[i] + "_move_test.txt";
+    gazeFile = resultDir + subjects[i] + "_move_testGaze.txt";
     std::ofstream testGaze;
     testGaze.open(gazeFile.c_str());
     mug::Samples testSet = filterSamples(loadSamples(dataFile));
@@ -129,5 +136,6 @@ int main(int argc, char ** argv)
     // Run tracker on test data
     evaluateTracker(gt, testSet, testGaze);
     testGaze.close();
+    }
 }
 
