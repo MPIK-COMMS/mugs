@@ -1,7 +1,7 @@
 // Copyright (C) 2010  Davis E. King (davis@dlib.net)
 // License: Boost Software License   See LICENSE.txt for the full license.
-#undef DLIB_OPTIMIZATION_TRUST_REGIoN_H_ABSTRACT__
-#ifdef DLIB_OPTIMIZATION_TRUST_REGIoN_H_ABSTRACT__
+#undef DLIB_OPTIMIZATION_TRUST_REGIoN_H_ABSTRACTh_
+#ifdef DLIB_OPTIMIZATION_TRUST_REGIoN_H_ABSTRACTh_
 
 #include "../matrix/matrix_abstract.h"
 
@@ -40,10 +40,11 @@ namespace dlib
                 Minimize: f(p) == 0.5*trans(p)*B*p + trans(g)*p
                 subject to the following constraint:
                     - length(p) <= radius
-            - returns the number of iterations performed.  If this method fails to
-              converge to eps accuracy then the number returned will be max_iter+1.
-            - if this function returns 0 or 1 then we are not hitting the radius bound.
-              Otherwise, the radius constraint is active and std::abs(length(#p)-radius) <= eps.
+            - returns the number of iterations performed.  If this method fails to converge
+              to eps accuracy then the number returned will be max_iter+1.
+            - if (this function didn't terminate due to hitting the max_iter iteration limit) then
+                - if this function returns 0 or 1 then we are not hitting the radius bound Otherwise, 
+                  the radius constraint is active and std::abs(length(#p)-radius)/radius <= eps.
     !*/
 
 // ----------------------------------------------------------------------------------------
@@ -176,6 +177,6 @@ namespace dlib
 
 }
 
-#endif // DLIB_OPTIMIZATION_TRUST_REGIoN_H_ABSTRACT__
+#endif // DLIB_OPTIMIZATION_TRUST_REGIoN_H_ABSTRACTh_
 
 

@@ -73,7 +73,7 @@ void EyeModelGp::fit(const std::vector< Vector2f >& pupilPositions, const std::v
     fit(samples);
 }
 
-void EyeModelGp::fit(const std::vector<Sample> &samples, ModelType mt, 
+void EyeModelGp::fit(const std::vector<Sample> &samples, 
         const std::string cov, bool optimizeParameters, 
         int numOptimizationSamples)
 {
@@ -87,7 +87,7 @@ void EyeModelGp::fit(const std::vector<Sample> &samples, ModelType mt,
     Eigen::MatrixXd X, Xs;
     Eigen::VectorXd yu, yus;
     Eigen::VectorXd yv, yvs;
-    sampleVecToMat(samples, mt, X, yu, yv);
+    sampleVecToMat(samples, X, yu, yv);
 
     int input_dim = X.cols();
     gpU = std::auto_ptr<libgp::GaussianProcess>(new libgp::GaussianProcess(input_dim, cov));
@@ -123,22 +123,22 @@ void EyeModelGp::fit(const std::vector<Sample> &samples, ModelType mt,
 
 
 
-Eigen::Vector2f EyeModelGp::predict(const Sample &s, ModelType mt, double &varX, double &varY) const
+Eigen::Vector2f EyeModelGp::predict(const Sample &s, double &varX, double &varY) const
 {
     VectorXd x;
     double yu, yv;
-    convertToGpInput(s, mt, x, yu, yv); 
+    convertToGpInput(s, x, yu, yv); 
 
     varX = const_cast<libgp::GaussianProcess*>(gpU.get())->var(x.data());
     varY = const_cast<libgp::GaussianProcess*>(gpV.get())->var(x.data());
 
     return predict(x); 
 }
-Eigen::Vector2f EyeModelGp::predict(const Sample &s, ModelType mt) const
+Eigen::Vector2f EyeModelGp::predict(const Sample &s) const
 {
     VectorXd x;
     double yu, yv;
-    convertToGpInput(s, mt, x, yu, yv); 
+    convertToGpInput(s, x, yu, yv); 
     return predict(x); 
 }
 
@@ -165,11 +165,11 @@ Eigen::Vector2f EyeModelGp::predict(const Eigen::VectorXd &x) const
     return f;
 }
 
-double EyeModelGp::getConfidence(const Sample &s, ModelType mt) const
+double EyeModelGp::getConfidence(const Sample &s) const
 {
     VectorXd x;
     double yu, yv;
-    convertToGpInput(s, mt, x, yu, yv);
+    convertToGpInput(s, x, yu, yv);
     return getConfidence(x);
 }
 
@@ -199,9 +199,9 @@ void EyeModelGp::save(const std::string &filename)
     gpV->write((filename+".v").c_str());
 }
 
-void EyeModelGp::convertToGpInput(const Sample &s, ModelType mt, Eigen::VectorXd &x, double &yu, double &yv) const
+void EyeModelGp::convertToGpInput(const Sample &s, Eigen::VectorXd &x, double &yu, double &yv) const
 {
-    switch (mt)
+    switch (this->mt)
     {
         case HEAD_ONLY: 
 	{
@@ -266,7 +266,7 @@ void EyeModelGp::convertToGpInput(const Sample &s, ModelType mt, Eigen::VectorXd
     }
 }
 
-void EyeModelGp::sampleVecToMat(const std::vector<Sample> &samples, ModelType mt,
+void EyeModelGp::sampleVecToMat(const std::vector<Sample> &samples,
         Eigen::MatrixXd &X, Eigen::VectorXd &yu, Eigen::VectorXd &yv) const
 {
     if (samples.empty())
@@ -277,7 +277,7 @@ void EyeModelGp::sampleVecToMat(const std::vector<Sample> &samples, ModelType mt
 
     // find out input dimension     
     Eigen::VectorXd x; double tu, tv;
-    convertToGpInput(samples[0], mt, x, tu, tv);
+    convertToGpInput(samples[0], x, tu, tv);
     int input_dim = x.size();
 
     X = Eigen::MatrixXd(samples.size(), input_dim);
@@ -286,7 +286,7 @@ void EyeModelGp::sampleVecToMat(const std::vector<Sample> &samples, ModelType mt
     for (int i=0; i<samples.size(); i++)
     {
         Eigen::VectorXd x; double tu, tv;
-        convertToGpInput(samples[i], mt, x, tu, tv);
+        convertToGpInput(samples[i], x, tu, tv);
         yu[i] = tu;
         yv[i] = tv;
         X.row(i) = x;

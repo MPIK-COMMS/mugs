@@ -1,7 +1,7 @@
 // Copyright (C) 2013  Davis E. King (davis@dlib.net)
 // License: Boost Software License   See LICENSE.txt for the full license.
-#undef DLIB_STRUCTURAL_SEQUENCE_sEGMENTATION_TRAINER_ABSTRACT_H__
-#ifdef DLIB_STRUCTURAL_SEQUENCE_sEGMENTATION_TRAINER_ABSTRACT_H__
+#undef DLIB_STRUCTURAL_SEQUENCE_sEGMENTATION_TRAINER_ABSTRACT_Hh_
+#ifdef DLIB_STRUCTURAL_SEQUENCE_sEGMENTATION_TRAINER_ABSTRACT_Hh_
 
 #include "sequence_segmenter_abstract.h"
 
@@ -44,9 +44,12 @@ namespace dlib
                 - #get_c() == 100
                 - this object isn't verbose
                 - #get_epsilon() == 0.1
+                - #get_max_iterations() == 10000
                 - #get_num_threads() == 2
                 - #get_max_cache_size() == 40
                 - #get_feature_extractor() == a default initialized feature_extractor
+                - #get_loss_per_missed_segment() == 1
+                - #get_loss_per_false_alarm() == 1
         !*/
 
         explicit structural_sequence_segmentation_trainer (
@@ -57,9 +60,12 @@ namespace dlib
                 - #get_c() == 100
                 - this object isn't verbose
                 - #get_epsilon() == 0.1
+                - #get_max_iterations() == 10000
                 - #get_num_threads() == 2
                 - #get_max_cache_size() == 40
                 - #get_feature_extractor() == fe 
+                - #get_loss_per_missed_segment() == 1
+                - #get_loss_per_false_alarm() == 1
         !*/
 
         const feature_extractor& get_feature_extractor (
@@ -105,6 +111,22 @@ namespace dlib
                   to train.  You can think of this epsilon value as saying "solve the 
                   optimization problem until the average number of segmentation mistakes
                   per training sample is within epsilon of its optimal value".
+        !*/
+
+        void set_max_iterations (
+            unsigned long max_iter
+        );
+        /*!
+            ensures
+                - #get_max_iterations() == max_iter
+        !*/
+
+        unsigned long get_max_iterations (
+        ); 
+        /*!
+            ensures
+                - returns the maximum number of iterations the SVM optimizer is allowed to
+                  run before it is required to stop and return a result.
         !*/
 
         void set_max_cache_size (
@@ -178,6 +200,44 @@ namespace dlib
                   generalization. 
         !*/
 
+        void set_loss_per_missed_segment (
+            double loss
+        );
+        /*!
+            requires
+                - loss >= 0
+            ensures
+                - #get_loss_per_missed_segment() == loss
+        !*/
+
+        double get_loss_per_missed_segment (
+        ) const;
+        /*!
+            ensures
+                - returns the amount of loss incurred for failing to detect a segment.  The
+                  larger the loss the more important it is to detect all the segments.
+        !*/
+
+
+        void set_loss_per_false_alarm (
+            double loss
+        );
+        /*!
+            requires
+                - loss >= 0
+            ensures
+                - #get_loss_per_false_alarm() == loss
+        !*/
+
+        double get_loss_per_false_alarm (
+        ) const;
+        /*!
+            ensures
+                - returns the amount of loss incurred for outputting a false detection. The
+                  larger the loss the more important it is to avoid outputting false
+                  detections.
+        !*/
+
         const sequence_segmenter<feature_extractor> train(
             const std::vector<sample_sequence_type>& x,
             const std::vector<segmented_sequence_type>& y
@@ -200,5 +260,5 @@ namespace dlib
 
 }
 
-#endif // DLIB_STRUCTURAL_SEQUENCE_sEGMENTATION_TRAINER_ABSTRACT_H__
+#endif // DLIB_STRUCTURAL_SEQUENCE_sEGMENTATION_TRAINER_ABSTRACT_Hh_
 

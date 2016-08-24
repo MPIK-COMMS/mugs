@@ -28,27 +28,26 @@
 using namespace lsl;
 using namespace mug;
 
-std::vector< Sample > LslInterface::fetchDataWStim(int terminal)
+void LslInterface::fetchDataWStim(Samples samples, int terminal)
 {
     // resolve head stream
-    printf("[MUGS LslInterface] Resolving head tracker stream...");
+    std::cout << "[MUGS LslInterface] Resolving head tracker stream..." << std::endl;
     std::vector<stream_info> resultsHead = resolve_stream("name", this->headStreamName);
-    printf(" DONE\n");
+    std::cout << "  DONE\n" << std::endl;
     // resolve eye stream
-    printf("[MUGS LslInterface] Resolving eye tracker stream...");
+    std::cout << "[MUGS LslInterface] Resolving eye tracker stream..." << std::endl;
     std::vector<stream_info> resultsEye = resolve_stream("name", this->eyeStreamName);
-    printf(" DONE\n");
+    std::cout << "  DONE\n" << std::endl;
     // resolve stimulus stream
-    printf("[MUGS LslInterface] Resolving stimulus stream...");
+    std::cout << "[MUGS LslInterface] Resolving stimulus stream..." << std::endl;
     std::vector<stream_info> resultsStim = resolve_stream("name", this->stimStreamName);
-    printf(" DONE\n");
+    std::cout << "  DONE\n" << std::endl;
     
     // get inlets for all three streams
     stream_inlet head(resultsHead[0]);
     stream_inlet eye(resultsEye[0]);
     stream_inlet stimulus(resultsStim[0]);
     
-    std::vector<Sample> samples;
     Sample s;
     while(true)
     {
@@ -65,25 +64,24 @@ std::vector< Sample > LslInterface::fetchDataWStim(int terminal)
 	samples.push_back(s);
     }
     
-    return samples;
+    return;
 }
 
-std::vector< Sample > LslInterface::fetchDataWoStim()
+void LslInterface::fetchDataWoStim(Samples samples)
 {
     // resolve head stream
-    printf("[MUGS LslInterface] Resolving head tracker stream...");
+    std::cout << "[MUGS LslInterface] Resolving head tracker stream..." << std::endl;
     std::vector<stream_info> resultsHead = resolve_stream("name", this->headStreamName);
-    printf(" DONE\n");
+    std::cout << "  DONE\n" << std::endl;
     // resolve eye stream
-    printf("[MUGS LslInterface] Resolving eye tracker stream...");
+    std::cout << "[MUGS LslInterface] Resolving eye tracker stream..." << std::endl;
     std::vector<stream_info> resultsEye = resolve_stream("name", this->eyeStreamName);
-    printf(" DONE\n");
+    std::cout << "  DONE\n" << std::endl;
     
     // get inlets for both streams
     stream_inlet head(resultsHead[0]);
     stream_inlet eye(resultsEye[0]);
     
-    std::vector<Sample> samples;
     Sample s;
     while(true)
     {
@@ -91,7 +89,7 @@ std::vector< Sample > LslInterface::fetchDataWoStim()
 	samples.push_back(s);
     }
     
-    return samples;
+    return;
 }
 
 

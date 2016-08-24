@@ -26,8 +26,22 @@
 namespace mug
 {
   
-     class Sample;
+    class Sample;
   
+    /**
+     * \brief Enumeration type to distinguesh different models
+     * used in the Gaussian Process Regression.
+     */
+    enum ModelType
+    {
+        EYE_LEFT  = 1,
+        EYE_RIGHT = 2,
+        EYE_BOTH  = 3,
+        PUPIL     = 4,
+        EYE_OFFSET = 5,
+        HEAD_ONLY  = 6
+    };
+
     /** 
      * \brief Base class for eye model implementations.
      * \author Bjoern Browatzki and Jonas Ditz
@@ -49,6 +63,7 @@ namespace mug
          * \return 2D vector containing yaw and pitch angle in radians.
          */
         virtual Eigen::Vector2f predict(const Sample &s) const = 0;
+	
 	
 	/**
 	 * \brief Calculate confidence in predicted gaze angles

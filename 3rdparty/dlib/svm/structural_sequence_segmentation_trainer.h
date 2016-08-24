@@ -1,7 +1,7 @@
 // Copyright (C) 2013  Davis E. King (davis@dlib.net)
 // License: Boost Software License   See LICENSE.txt for the full license.
-#ifndef DLIB_STRUCTURAL_SEQUENCE_sEGMENTATION_TRAINER_H__
-#define DLIB_STRUCTURAL_SEQUENCE_sEGMENTATION_TRAINER_H__
+#ifndef DLIB_STRUCTURAL_SEQUENCE_sEGMENTATION_TRAINER_Hh_
+#define DLIB_STRUCTURAL_SEQUENCE_sEGMENTATION_TRAINER_Hh_
 
 #include "structural_sequence_segmentation_trainer_abstract.h"
 #include "structural_sequence_labeling_trainer.h"
@@ -27,11 +27,15 @@ namespace dlib
             const feature_extractor& fe_
         ) : trainer(impl_ss::feature_extractor<feature_extractor>(fe_))
         {
+            loss_per_missed_segment = 1;
+            loss_per_false_alarm = 1;
         }
 
         structural_sequence_segmentation_trainer (
         )
         {
+            loss_per_missed_segment = 1;
+            loss_per_false_alarm = 1;
         }
 
         const feature_extractor& get_feature_extractor (
@@ -67,6 +71,16 @@ namespace dlib
 
         double get_epsilon (
         ) const { return trainer.get_epsilon(); }
+
+        unsigned long get_max_iterations (
+        ) const { return trainer.get_max_iterations(); }
+
+        void set_max_iterations (
+            unsigned long max_iter
+        ) 
+        {
+            trainer.set_max_iterations(max_iter);
+        }
 
         void set_max_cache_size (
             unsigned long max_size
@@ -125,6 +139,63 @@ namespace dlib
         ) const
         {
             return trainer.get_c();
+        }
+
+        void set_loss_per_missed_segment (
+            double loss
+        )
+        {
+            // make sure requires clause is not broken
+            DLIB_ASSERT(loss >= 0,
+                        "\t void structural_sequence_segmentation_trainer::set_loss_per_missed_segment(loss)"
+                        << "\n\t invalid inputs were given to this function"
+                        << "\n\t loss: " << loss
+                        << "\n\t this: " << this
+            );
+
+            loss_per_missed_segment = loss;
+
+            if (feature_extractor::use_BIO_model)
+            {
+                trainer.set_loss(impl_ss::BEGIN,  loss_per_missed_segment);
+                trainer.set_loss(impl_ss::INSIDE, loss_per_missed_segment);
+            }
+            else
+            {
+                trainer.set_loss(impl_ss::BEGIN,  loss_per_missed_segment);
+                trainer.set_loss(impl_ss::INSIDE, loss_per_missed_segment);
+                trainer.set_loss(impl_ss::LAST,   loss_per_missed_segment);
+                trainer.set_loss(impl_ss::UNIT,   loss_per_missed_segment);
+            }
+        }
+
+        double get_loss_per_missed_segment (
+        ) const
+        {
+            return loss_per_missed_segment;
+        }
+
+        void set_loss_per_false_alarm (
+            double loss
+        )
+        {
+            // make sure requires clause is not broken
+            DLIB_ASSERT(loss >= 0,
+                        "\t void structural_sequence_segmentation_trainer::set_loss_per_false_alarm(loss)"
+                        << "\n\t invalid inputs were given to this function"
+                        << "\n\t loss: " << loss
+                        << "\n\t this: " << this
+            );
+
+            loss_per_false_alarm = loss;
+
+            trainer.set_loss(impl_ss::OUTSIDE,  loss_per_false_alarm);
+        }
+
+        double get_loss_per_false_alarm (
+        ) const
+        {
+            return loss_per_false_alarm;
         }
 
         const sequence_segmenter<feature_extractor> train(
@@ -198,11 +269,13 @@ namespace dlib
     private:
 
         structural_sequence_labeling_trainer<impl_ss::feature_extractor<feature_extractor> > trainer;
+        double loss_per_missed_segment;
+        double loss_per_false_alarm;
     };
 
 // ----------------------------------------------------------------------------------------
 
 }
 
-#endif // DLIB_STRUCTURAL_SEQUENCE_sEGMENTATION_TRAINER_H__
+#endif // DLIB_STRUCTURAL_SEQUENCE_sEGMENTATION_TRAINER_Hh_
 

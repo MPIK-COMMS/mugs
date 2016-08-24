@@ -108,7 +108,6 @@ namespace dlib
         private:
             // restricted functions
             row();
-            row(row&);
             row& operator=(row&);
         };
 
@@ -123,14 +122,22 @@ namespace dlib
                 - std::bad_alloc 
         !*/
 
+        array2d(
+            array2d&& item
+        );
+        /*!
+            ensures
+                - Moves the state of item into *this.
+                - #item is in a valid but unspecified state.
+        !*/
+
         array2d (
             long rows,
             long cols 
         );
         /*!
             requires
-                - cols > 0 && rows > 0 or
-                  cols == 0 && rows == 0
+                - rows >= 0 && cols >= 0
             ensures
                 - #nc() == cols
                 - #nr() == rows
@@ -175,8 +182,7 @@ namespace dlib
         );
         /*!
             requires
-                - cols > 0 && rows > 0 or
-                  cols == 0 && rows == 0
+                - rows >= 0 && cols >= 0
             ensures
                 - #nc() == cols
                 - #nr() == rows
@@ -191,7 +197,7 @@ namespace dlib
                     value for its type.
         !*/
 
-        row& operator[] (
+        row operator[] (
             long row_index
         );
         /*!
@@ -202,7 +208,7 @@ namespace dlib
                   given row_index'th row in *this.
         !*/
 
-        const row& operator[] (
+        const row operator[] (
             long row_index
         ) const;
         /*!
@@ -220,6 +226,16 @@ namespace dlib
             ensures
                 - swaps *this and item
         !*/ 
+
+        array2d& operator= (
+            array2d&& rhs
+        );
+        /*!
+            ensures
+                - Moves the state of item into *this.
+                - #item is in a valid but unspecified state.
+                - returns #*this
+        !*/
 
         long width_step (
         ) const;

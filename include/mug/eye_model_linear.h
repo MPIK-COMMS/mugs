@@ -39,6 +39,40 @@ namespace mug
     class EyeModelLinear : public EyeModel
     {
     public:
+        /**
+	 * \brief Constructor of the EyeModelLinear class.
+	 */
+	EyeModelLinear()
+	{
+	    this->mt = EYE_LEFT;
+	}
+	
+	/**
+	 * \brief Constructor of the EyeModelLinear class.
+	 * \param[in] mt ModelType that will be used for this instance of EyeModelLinear.
+	 */
+	EyeModelLinear(ModelType mt)
+	{
+	    this->mt = mt;
+	}
+	
+	/**
+	 * \brief Setter function for the member variable mt
+	 * \param[in] mt ModelType value for member variable mt
+	 */
+	void setModelType (ModelType mt)
+	{
+	    this->mt = mt;
+	}
+	
+	/**
+	 * \brief Getter function for the member variable mt
+	 */
+	ModelType getModelType ()
+	{
+	    return this->mt;
+	}
+	
         /** 
          * \brief Perform linear regression to fit pupil positions to gaze angles (yaw, pitch).
          * \param[in] pupilPositions Vector of 2D positions in the eye tracker camera image 
@@ -46,18 +80,31 @@ namespace mug
          */
         void fit(const std::vector<Eigen::Vector2f> &pupilPositions,  
                  const std::vector<Eigen::Vector2f> &gazeAngles);
-
-        /** 
+	
+	/** 
          * \brief Predict gaze angles based on pupil position
          * \param[in] s Sample object containing UV pupil position 
          * \return 2D vector containing yaw and pitch angle in radians.
          */
-        Eigen::Vector2f predict(const Sample &s) const
-        {
-	    Eigen::VectorXf pupil = Eigen::VectorXf(2);
-	    pupil[0] = s.px_left;
-	    pupil[1] = s.py_left;
-	    return predict(pupil);
+	Eigen::Vector2f predict(const Sample &s) const
+	{
+	    switch(this->mt)
+	    {
+		case EYE_RIGHT:
+		{
+		    Eigen::VectorXf pupil = Eigen::VectorXf(2);
+	            pupil[0] = s.px_right;
+	            pupil[1] = s.py_right;
+	            return predict(pupil);
+		}
+		default:
+		{
+	            Eigen::VectorXf pupil = Eigen::VectorXf(2);
+	            pupil[0] = s.px_left;
+	            pupil[1] = s.py_left;
+	            return predict(pupil);
+		}
+	    }
 	}
 	
 	/**
@@ -67,13 +114,14 @@ namespace mug
 	 */
 	inline double getConfidence(const Sample &s) const
 	{
-	    // Currently, no convidence evaluation implemented!
+	    // Currently, no confidence evaluation implemented!
 	    return 0.0;
 	};
 
     private:
         Eigen::Vector2f modelYaw;       /// coefficients of linear model for yaw 
         Eigen::Vector2f modelPitch;     /// coefficients of linear model for pitch
+        ModelType mt;                   /// specifies which eye should be used for regression
        
         /** 
          * \brief Computes simple linear regression.

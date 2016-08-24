@@ -37,6 +37,40 @@ namespace mug
     class EyeModelMoore : public EyeModel
     {
     public:
+        /**
+	 * \brief Constructor of the EyeModelMoore class.
+	 */
+	EyeModelMoore()
+	{
+	    this->mt = EYE_LEFT;
+	}
+	
+	/**
+	 * \brief Constructor of the EyeModelMoore class.
+	 * \param[in] mt ModelType that will be used for this instance of EyeModelLinear.
+	 */
+	EyeModelMoore(ModelType mt)
+	{
+	    this->mt = mt;
+	}
+	
+	/**
+	 * \brief Setter function for the member variable mt
+	 * \param[in] mt ModelType value for member variable mt
+	 */
+	void setModelType (ModelType mt)
+	{
+	    this->mt = mt;
+	}
+	
+	/**
+	 * \brief Getter function for the member variable mt
+	 */
+	ModelType getModelType ()
+	{
+	    return this->mt;
+	}
+      
         /** 
          * \brief Create mapping from pupil positions to gaze angles (yaw, pitch).
          * \param[in] pupilPositions Vector of 2D positions in the eye tracker camera image 
@@ -44,7 +78,7 @@ namespace mug
          */
         void fit(const std::vector<Eigen::Vector2f> &pupilPositions,  
                  const std::vector<Eigen::Vector2f> &gazeAngles);
-
+	
         /** 
          * \brief Predict gaze angles based on pupil position
          * \param[in] s Sample object containing UV pupil position.
@@ -52,10 +86,23 @@ namespace mug
          */
         virtual Eigen::Vector2f predict(const Sample &s) const
         {
-	    Eigen::VectorXf pupil = Eigen::VectorXf(2);
-	    pupil[0] = s.px_left;
-	    pupil[1] = s.py_left;
-	    return predict(pupil);
+	    switch(this->mt)
+	    {
+		case EYE_RIGHT:
+		{
+		    Eigen::VectorXf pupil = Eigen::VectorXf(2);
+	            pupil[0] = s.px_right;
+	            pupil[1] = s.py_right;
+	            return predict(pupil);
+		}
+		default:
+		{
+	            Eigen::VectorXf pupil = Eigen::VectorXf(2);
+	            pupil[0] = s.px_left;
+	            pupil[1] = s.py_left;
+	            return predict(pupil);
+		}
+	    }
 	}
 	
 	/**
@@ -71,6 +118,7 @@ namespace mug
 
     private:
         Eigen::MatrixXd A;  /// eye model coefficients
+        ModelType mt;       /// specifies which eye should be used for regression
         
         /** 
          * \brief Predict gaze angles based on pupil position
