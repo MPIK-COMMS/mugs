@@ -18,30 +18,17 @@
  * along with MUGS.  If not, see <http://www.gnu.org/licenses/>. 
  */
 
-#ifndef PREPROCESSING_H
-#define PREPROCESSING_H
-
-#endif
-
-#include <cmath>
 #include <math.h>
 #include <algorithm>
 #include <Eigen/Dense>
 #include <mug/sample.h>
 #include <mug/eye_model.h>
+#include <mug/preprocessing.h>
 
 using namespace Eigen;
 using namespace mug;
 
-Vector2f cart2pol(float x, float y)
-{
-    Vector2f pol;
-    pol[0] = std::atan2(x,y);   // calculate theta
-    pol[1] = std::hypot(x,y);   // calculate r
-    return pol;
-}
-
-void correctPolArtifacts(std::vector<Eigen::Vector2f> & pol)
+void mug::correctPolArtifacts(std::vector<Eigen::Vector2f> & pol)
 {
     // threshold to decide whether the current jump is a polar artifact
     float threshold = 2 * M_PI - 0.15;
@@ -58,7 +45,7 @@ void correctPolArtifacts(std::vector<Eigen::Vector2f> & pol)
     }
 }
 
-Vector4f meanPosAndMarkerChanges (std::vector<Sample> & s, std::vector<int> & markerChanges)
+Vector4f mug::meanPosAndMarkerChanges (std::vector<Sample> & s, std::vector<int> & markerChanges)
 {
     float center_px_left, center_py_left, center_px_right, center_py_right;
     Vector4f meanPosition;
@@ -87,15 +74,7 @@ Vector4f meanPosAndMarkerChanges (std::vector<Sample> & s, std::vector<int> & ma
     return meanPosition;
 }
 
-void removeSamples (std::vector<Sample> & s, std::vector<int[2]> removableAreas)
-{
-    for (std::vector<int[2]>::iterator it = removableAreas.begin(); it != removableAreas.end(); ++it)
-    {
-        s.erase(s.begin() + *it[0], s.begin() + *it[1]);
-    }
-}
-
-std::vector<int> saccadeFilter_velocity (std::vector<Sample> & s, ModelType mt, bool remove = true)
+std::vector<int> mug::saccadeFilter_velocity (std::vector<Sample> & s, ModelType mt, bool remove)
 {
     // Get mean eye positions and points of changes of the marker position.
     std::vector<int> markerChanges;
@@ -115,6 +94,13 @@ std::vector<int> saccadeFilter_velocity (std::vector<Sample> & s, ModelType mt, 
             polar_eye.push_back(cart2pol(it->px_left - meanPos[0], it->py_left - meanPos[1]));
         }
     }
+    
+    // remove artifacts caused by conversion into polar coordinates
+    correctPolArtifacts(polar_eye);
+    
+    // calculate first derivative of theta
+    std::vector<float> derivative;
+    simpleDerivative(polar_eye, derivative);
     
     //TODO finish filter method
     return markerChanges; //this is just a auxiliary return statement! Needs to be changed in the final version
