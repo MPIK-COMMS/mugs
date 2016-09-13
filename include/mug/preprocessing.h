@@ -24,11 +24,10 @@
 #include <vector>
 #include <cmath>
 #include <Eigen/Dense>
+#include <mug/eye_model.h>
 
 namespace mug 
 {
-    class Sample;
-    enum ModelType;
     
     /**
      * \brief This function converts Euclidean coordinates into Polar coordinates.
@@ -36,12 +35,43 @@ namespace mug
      * \param[in] y Y coordinate of the point.
      * \return Polar coordinates (theta, r) of the point.
      */
-    Eigen::Vector2f cart2pol (float x, float y)
+    inline Eigen::Vector2f cart2pol (float x, float y)
     {
-        Vector2f pol;
+        Eigen::Vector2f pol;
         pol[0] = atan2(x,y);   // calculate theta
         pol[1] = hypot(x,y);   // calculate r
         return pol;
+    }
+    
+    /**
+     * \brief Simple approach to calculates the first derivative (velocities) of a timeseries
+     *        of points.
+     * \param[in] points Timeseries for which the derivative should be calculated.
+     * \param[out] derivative First derivative (velocities) of the the timeseries of points.
+     */
+    inline void simpleDerivative (std::vector<Eigen::Vector2f> & points,
+                           std::vector<float> & derivative)
+    {
+        derivative.push_back(0);
+        for (std::vector<Eigen::Vector2f>::iterator it = points.begin()+1; it != points.end(); ++it)
+        {
+	    derivative.push_back((*it)[0] - (*(it-1))[0]);
+        }
+    }
+        
+    /**
+     * \brief Remove all samples that are specified by the vector of indices 
+     *        given as a second argument.
+     * \param[out] s The samples are removed from this Samples object.
+     * \param[in] removableAreas Vector of indices, that specifies which 
+     *            samples should be removed.
+     */
+    inline void removeSamples (std::vector<Sample> & s, std::vector<int[2]> removableAreas)
+    {
+        for (std::vector<int[2]>::iterator it = removableAreas.begin(); it != removableAreas.end(); ++it)
+        {
+            s.erase(s.begin() + *it[0], s.begin() + *it[1]);
+        }
     }
     
     /**
@@ -51,22 +81,6 @@ namespace mug
      *             of the eye.
      */
     void correctPolArtifacts (std::vector<Eigen::Vector2f> & pol);
-    
-    /**
-     * \brief Simple approach to calculates the first derivative (velocities) of a timeseries
-     *        of points.
-     * \param[in] points Timeseries for which the derivative should be calculated.
-     * \param[out] derivative First derivative (velocities) of the the timeseries of points.
-     */
-    void simpleDerivative (std::vector<Eigen::Vector2f> & points,
-                           std::vector<float> & derivative)
-    {
-        derivative.push_back(0);
-        for (std::vector<Eigen::Vector2f>::iterator it = points.begin()+1; it != points.end(); ++it)
-        {
-	    derivative.push_back((*it)[0] - (*(it-1))[0]);
-        }
-    }
 
     /**
      * \brief Calculates the mean position of both eyes. Additionally,
@@ -76,21 +90,6 @@ namespace mug
      * \return Mean position of eye coordinates for both eyes.
      */
     Eigen::Vector4f meanPosAndMarkerChanges (std::vector<Sample> & s, std::vector<int> & makerChanges);
-    
-    /**
-     * \brief Remove all samples that are specified by the vector of indices 
-     *        given as a second argument.
-     * \param[out] s The samples are removed from this Samples object.
-     * \param[in] removableAreas Vector of indices, that specifies which 
-     *            samples should be removed.
-     */
-    void removeSamples (std::vector<Sample> & s, std::vector<int[2]> removableAreas)
-    {
-        for (std::vector<int[2]>::iterator it = removableAreas.begin(); it != removableAreas.end(); ++it)
-        {
-            s.erase(s.begin() + *it[0], s.begin() + *it[1]);
-        }
-    }
     
     /**
      * \brief Filter that identifies sample points in a Samples object, which belong to a saccade.

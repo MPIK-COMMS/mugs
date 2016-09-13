@@ -18,12 +18,13 @@
  * along with MUGS.  If not, see <http://www.gnu.org/licenses/>. 
  */
 
+#include <mug/preprocessing.h>
+
 #include <math.h>
 #include <algorithm>
 #include <Eigen/Dense>
 #include <mug/sample.h>
 #include <mug/eye_model.h>
-#include <mug/preprocessing.h>
 
 using namespace Eigen;
 using namespace mug;
