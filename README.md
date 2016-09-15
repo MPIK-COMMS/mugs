@@ -14,7 +14,7 @@ sudo apt-get install cmake-curses-gui libboost-all-dev libeigen3-dev
 #### libGp
 
 Download and install from:
-https://bitbucket.org/mblum/libgp
+https://github.com/mblum/libgp
     
 
 #### Build library:
