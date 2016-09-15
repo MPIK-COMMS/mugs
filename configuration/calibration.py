@@ -41,10 +41,11 @@ import pylsl
 #--------------------------------------------------
 
 # Define the sample rate for the LSL outlet.
-SAMPLERATE = 100
+# Chose according to your monitor's refreshing rate
+SAMPLERATE = 60 #100
 
 # Duration of a fixation.
-FIXATIONTIME = 1000
+FIXATIONTIME = 2000
 
 # Movement speed of the dot.
 SPEED = 6
@@ -157,7 +158,15 @@ def createSeq(startX, startY, width, height):
     width -- Width of the current window.
     height - Height of the current window.
     """
+
+    gridWidth = width/5
+    gridHeight = height/4
+    widthCor = gridWidth/2
+    heightCor = gridHeight/2
+
     configSeq = []
+
+    # start smooth persuit part of the calibration sequence
     configSeq.append([(width-50, startY), SPEED, 0])
     configSeq.append([(width-50, height/4), 0, -SPEED])
     configSeq.append([(5*(width/8), height/4), -SPEED, 0])
@@ -167,16 +176,41 @@ def createSeq(startX, startY, width, height):
     configSeq.append([(width/4, height/4), -SPEED, 0])
     configSeq.append([(width/4, 3*(height/4)), 0, SPEED])
     configSeq.append([(3*(width/4), 3*(height/4)), SPEED, 0])
-    configSeq.append([(width/2, height/2), 0, 0])
-    configSeq.append([(width/4, height/2), 0, 0])
-    configSeq.append([(50, 50), 0, 0])
-    configSeq.append([(width-50, height-50), 0, 0])
-    configSeq.append([(width-50, 50), 0, 0])
-    configSeq.append([(50, height-50), 0, 0])
-    configSeq.append([(width/4, height/4), 0, 0])
-    configSeq.append([(width/4, 3*(height/4)), 0, 0])
-    configSeq.append([(3*(width/4), 3*(height/4)), 0, 0])
-    configSeq.append([(3*(width/4), height/4), 0, 0])
+    configSeq.append([(3*(width/4), 5*(height/8)), 0, -SPEED])
+    configSeq.append([(5*(width/8), 5*(height/8)), -SPEED, 0])
+    configSeq.append([(5*(width/8), 4*(height/8)), 0, -SPEED])
+    configSeq.append([(4*(width/8), 4*(height/8)), -SPEED, 0])
+    configSeq.append([(4*(width/8), 3*(height/8)), 0, -SPEED])
+    configSeq.append([(3*(width/8), 3*(height/8)), -SPEED, 0])
+    configSeq.append([(3*(width/8), 2*(height/8)), 0, -SPEED])
+    configSeq.append([(2*(width/8), 2*(height/8)), -SPEED, 0])
+    configSeq.append([(2*(width/8), height/8), 0, -SPEED])
+    configSeq.append([(width/8, height/8), -SPEED, 0])
+    configSeq.append([(width/8, 7*(height/8)), 0, SPEED])
+
+    # start fixation part of the calibration sequence
+    configSeq.append([(gridWidth-widthCor, gridHeight-heightCor), 0, 0])
+    configSeq.append([((3*gridWidth)-widthCor, (3*gridHeight)-heightCor), 0, 0])
+    configSeq.append([((2*gridWidth)-widthCor, (3*gridHeight)-heightCor), 0, 0])
+    configSeq.append([((5*gridWidth)-widthCor, (2*gridHeight)-heightCor), 0, 0])
+    configSeq.append([((4*gridWidth)-widthCor, (4*gridHeight)-heightCor), 0, 0])
+    configSeq.append([((5*gridWidth)-widthCor, (gridHeight)-heightCor), 0, 0])
+    configSeq.append([((3*gridWidth)-widthCor, (2*gridHeight)-heightCor), 0, 0])
+    configSeq.append([((gridWidth)-widthCor, (4*gridHeight)-heightCor), 0, 0])
+    configSeq.append([((4*gridWidth)-widthCor, (gridHeight)-heightCor), 0, 0])
+    configSeq.append([((2*gridWidth)-widthCor, (4*gridHeight)-heightCor), 0, 0])
+    configSeq.append([((2*gridWidth)-widthCor, (gridHeight)-heightCor), 0, 0])
+    configSeq.append([((4*gridWidth)-widthCor, (3*gridHeight)-heightCor), 0, 0])
+    configSeq.append([((5*gridWidth)-widthCor, (4*gridHeight)-heightCor), 0, 0])
+    configSeq.append([((2*gridWidth)-widthCor, (2*gridHeight)-heightCor), 0, 0])
+    configSeq.append([((3*gridWidth)-widthCor, (gridHeight)-heightCor), 0, 0])
+    configSeq.append([((4*gridWidth)-widthCor, (2*gridHeight)-heightCor), 0, 0])
+    configSeq.append([((gridWidth)-widthCor, (2*gridHeight)-heightCor), 0, 0])
+    configSeq.append([((gridWidth)-widthCor, (3*gridHeight)-heightCor), 0, 0])
+    configSeq.append([((3*gridWidth)-widthCor, (4*gridHeight)-heightCor), 0, 0])
+    configSeq.append([((5*gridWidth)-widthCor, (3*gridHeight)-heightCor), 0, 0])
+
+    # return calibration sequence
     return configSeq
 
 def drawAndRecordConfigSeq(dot, lslStream, sequence, pygameWindow):
@@ -218,16 +252,9 @@ def drawAndRecordConfigSeq(dot, lslStream, sequence, pygameWindow):
             pygameWindow.fill(WHITE)
             pygame.draw.circle(pygameWindow, BLACK, (dot.x, dot.y), dot.size, 0)
             pygame.display.update()
-            eventOcc = False
-            while True:
-                for event in pygame.event.get():
-                    if event.type == KEYDOWN and event.key == K_RETURN:
-                        eventOcc = True
-                        startTime = currentTime()
-                        while (currentTime() < startTime+FIXATIONTIME):
-                            lslStream.push_sample([dot.x, dot.y], pylsl.local_clock())
-                if eventOcc:
-                    break
+            startTime = currentTime()
+            while (currentTime() < startTime+FIXATIONTIME):
+                lslStream.push_sample([dot.x, dot.y], pylsl.local_clock())
         else: # smooth persuit
             pygameWindow.fill(WHITE)
             pygame.draw.circle(pygameWindow, BLACK, (dot.x, dot.y), dot.size, 0)
@@ -247,7 +274,7 @@ def drawAndRecordConfigSeq(dot, lslStream, sequence, pygameWindow):
  
     # Indicate that the calibration sequence is over
     afterTime = currentTime()
-    while (currentTime() < afterTime+1000):
+    while (currentTime() < afterTime+5000):
         lslStream.push_sample([-100, -100], pylsl.local_clock())
 
 def configure():

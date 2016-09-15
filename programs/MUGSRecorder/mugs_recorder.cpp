@@ -132,5 +132,5 @@ int main (int argc, char** argv)
     if (stimStream != ""){lslInterface.fetchDataWStim(samples, terminal);}
     else {lslInterface.fetchDataWoStim(samples);}
 
-    saveSamples(samples, "./results/test_lslInterface.txt");
+    saveSamples(samples, outputFile);
 }
