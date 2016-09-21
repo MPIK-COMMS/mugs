@@ -43,6 +43,7 @@ namespace mug
             : screen(scr), eyeModel(mt)
         {
 	    this->mt = mt;
+	    std::cout << "used eye: " << eyeModel.getModelType() << std::endl;
 	} 
 
         /** 
@@ -83,6 +84,7 @@ namespace mug
          */
         inline Eigen::Vector3f getScreenUV(const Sample &s) const
         {
+	    //std::cout << "used eye: " << eyeModel.getModelType() << std::endl;
             Eigen::Vector2f gazeAngles = eyeModel.predict(s);
 	    Eigen::Vector2f scrProjection = screen.project(s.H_pos, s.H_o, T_trans, T_rot, gazeAngles[0], gazeAngles[1]);
 	    double conf = eyeModel.getConfidence(s);

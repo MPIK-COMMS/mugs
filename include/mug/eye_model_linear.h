@@ -68,7 +68,7 @@ namespace mug
 	/**
 	 * \brief Getter function for the member variable mt
 	 */
-	ModelType getModelType ()
+	ModelType getModelType () const
 	{
 	    return this->mt;
 	}

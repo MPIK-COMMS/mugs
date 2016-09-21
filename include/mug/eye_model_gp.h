@@ -69,7 +69,7 @@ namespace mug
 	/**
 	 * \brief Getter function for the member variable mt
 	 */
-	ModelType getModelType () { return this->mt; }
+	ModelType getModelType () const { return this->mt; }
 
 	/** 
          * \brief Create mapping from pupil positions to gaze angles (yaw, pitch).
