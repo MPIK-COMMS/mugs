@@ -29,8 +29,8 @@ namespace mug
     class Sample;
   
     /**
-     * \brief Enumeration type to distinguesh different models
-     * used in the Gaussian Process Regression.
+     * \brief Enumeration type to specify, which eye should be used in the 
+     *        regression.
      */
     enum ModelType
     {

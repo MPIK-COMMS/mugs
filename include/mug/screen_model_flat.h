@@ -43,9 +43,11 @@ namespace mug
     class EvalParams
     {
     public:
-        EvalParams(const std::vector<std::vector<Sample> > &samples_)
+        EvalParams(const std::vector<std::vector<Sample> > &samples_, ModelType mt)
             : sampleList(samples_.begin(), samples_.end()), nIters(0)
-        {}
+        {
+	    this->mt = mt;
+	}
 
         /** 
         * \brief Evaluation function called in each optimization iteration. 
@@ -65,7 +67,7 @@ namespace mug
             for (int i = 0; i < sampleList.size(); i++)
             {
                 Vector3f T_trans, T_rot;
-                mse += findEyeTransform<EyeModelT>(sampleList[i], scr, T_trans, T_rot);
+                mse += findEyeTransform<EyeModelT>(sampleList[i], scr, T_trans, T_rot, mt);
             }
 
             mse /= sampleList.size();
@@ -74,6 +76,7 @@ namespace mug
             return mse;
         }
     private:
+        ModelType mt;
         mutable int nIters;
         std::vector<Samples> sampleList;
     };
@@ -89,10 +92,11 @@ namespace mug
         /** 
         * \brief Runs non-linear optimization to fit screen center and orientation to datasets.
         * \param[in] datasets Vector of training datasets
+	* \param[in] mt ModelType that specifies the used eye
         * \param[out] center Found screen center point (3D)
         * \param[out] orientation Found screen orientation
         */
-        void run(const std::vector<Samples> &datasets, Eigen::Vector3f &center, Eigen::Vector3f &orientation)
+        void run(const std::vector<Samples> &datasets, ModelType mt, Eigen::Vector3f &center, Eigen::Vector3f &orientation)
         {
             const int param_dim = 6;
             column_vector params(param_dim);
@@ -115,7 +119,7 @@ namespace mug
             for (int i=0; i < 1; i++)
             {
                 double f = find_min_bobyqa(
-                        EvalParams<EyeModelT, ScreenModelFlat>(datasets), 
+                        EvalParams<EyeModelT, ScreenModelFlat>(datasets, mt), 
                         params, 
                         params.size()*2+1,    // number of interpolation points
                         lower_bounds,
@@ -210,10 +214,11 @@ namespace mug
         /** 
          * \brief Finds screen coefficients by fitting model to supplied data.
          * Optimization is carried out based on the specified eye model \ref EyeModel "EyeModelT".
-         * \param[in] dataFiles Vector of filenames. Each file contains a set of training samples.  
+         * \param[in] dataFiles Vector of filenames. Each file contains a set of training samples. 
+	 * \param[in] mt ModelType that specifies the used eye. 
          */
         template<class EyeModelT>
-        void calibrate(const std::vector<std::string> &dataFiles)
+        void calibrate(const std::vector<std::string> &dataFiles, ModelType mt)
         {
             // load data
             std::vector<Samples> datasets;
@@ -227,7 +232,7 @@ namespace mug
 
             // run non-linear optimization to estimate center and orientation
             ScreenModelFlatOpt<EyeModelT> opt;
-            opt.run(datasets, center, orientation);
+            opt.run(datasets, mt, center, orientation);
 
             // apply found parameters
             create(center, orientation);

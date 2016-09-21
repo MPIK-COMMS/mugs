@@ -43,9 +43,11 @@ namespace mug
     class OptEyeOffset
     {
     public:
-        OptEyeOffset(const std::vector<Sample> &samples_, const ScreenModel &screen)
+        OptEyeOffset(const std::vector<Sample> &samples_, const ScreenModel &screen, ModelType mt)
             : samples(samples_.begin(), samples_.end()), scr(screen)
-        {}
+        {
+	    this->mt = mt;
+	}
 
         double operator()(const column_vector& p) const
         {
@@ -62,7 +64,7 @@ namespace mug
                 angles.push_back(Vector2f(yaw, pitch));
             }
 
-            EyeModelType eyeModel;
+            EyeModelType eyeModel(mt);
             eyeModel.fit(pupils, angles);
     
             return getMse(eyeModel, T_trans, T_rot, samples, scr);
@@ -95,6 +97,7 @@ namespace mug
 
         Samples samples;
         const ScreenModel &scr;
+	ModelType mt;
     };
 
     /**
@@ -111,7 +114,7 @@ namespace mug
     template<typename EyeModelT> 
     inline double findEyeTransform(
         const Samples &samples, const ScreenModel &screen,
-        Vector3f &T_trans, Vector3f &T_rot)
+        Vector3f &T_trans, Vector3f &T_rot, ModelType mt)
     {
         int param_dim = 6;
         column_vector starting_point(param_dim);
@@ -123,7 +126,7 @@ namespace mug
         starting_point =  -0.15, 0.03, -0.10, 0,0,0;
 
         double f = find_min_bobyqa(
-                OptEyeOffset<EyeModelT>(samples, screen), 
+                OptEyeOffset<EyeModelT>(samples, screen, mt), 
                 starting_point, 
                 starting_point.size()*2+1,    // number of interpolation points
                 lower_bounds,
@@ -140,7 +143,7 @@ namespace mug
     template<>
     inline double findEyeTransform<EyeModelGp>(
         const Samples &samples, const ScreenModel &screen,
-        Vector3f &T_trans, Vector3f &T_rot)
+        Vector3f &T_trans, Vector3f &T_rot, ModelType mt)
     {
         int param_dim = 6;
         column_vector starting_point(param_dim);

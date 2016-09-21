@@ -39,9 +39,11 @@ namespace mug
     class GazeTracker
     {
     public:
-        GazeTracker(const ScreenModel &scr) 
-            : screen(scr)
-        {} 
+        GazeTracker(const ScreenModel &scr, ModelType mt) 
+            : screen(scr), eyeModel(mt)
+        {
+	    this->mt = mt;
+	} 
 
         /** 
          * \brief Calibrate eye model and head eye transform using training data in dataFile.
@@ -59,7 +61,7 @@ namespace mug
          */
         inline void calibrate(const Samples &trainingData)
         {
-            findEyeTransform<EyeModelT>(trainingData, screen, T_trans, T_rot);
+            findEyeTransform<EyeModelT>(trainingData, screen, T_trans, T_rot, mt);
 	    
             // calculate true gaze angles based on current head eye transform
             std::vector<Vector2f> pupils;
@@ -91,6 +93,7 @@ namespace mug
         }
 
     private:
+        ModelType mt;        ///< Specifies the used eye
         EyeModelT eyeModel;         ///< Used to map pupil positions to gaze angles
         const ScreenModel &screen;  ///< Represents display surface
         Eigen::Vector3f T_trans;    ///< Translation from head origin to eye origin

@@ -48,7 +48,7 @@ namespace mug
 	 */
 	EyeModelGp()
 	{
-	    this->mt = EYE_BOTH;
+	    this->mt = EYE_LEFT;
 	}
 	
 	/**

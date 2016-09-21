@@ -233,7 +233,8 @@ int main(int argc, char ** argv)
 {
     // Handle command line arguments.
     bool optimizeScreen;
-    std::string eyeModel, trainFile, testFile, outputFile, configFile;
+    std::string eyeModel, trainFile, testFile, outputFile, configFile, modelType;
+    ModelType mt;
     try {
         // Declare a group of options that will be allowed
         // only on command line.
@@ -252,6 +253,8 @@ int main(int argc, char ** argv)
 	     "Specify, whether or not to opimize the screen (Default: false)")
 	    ("model,m", po::value<std::string>(&eyeModel)->default_value("EyeModelGp"),
 	     "Specify the eye model used for the gaze tracker (Default: EyeModelGp). Possible values are EyeModelGp, EyeModelLinear and EyeModelMoore.")
+	    ("type,t", po::value<std::string>(&modelType)->default_value("EYE_LEFT"),
+	     "Specify the eye, which will be used for the regression (Default: EYE_LEFT). Possible values are EYE_LEFT, EYE_RIGHT, EYE_BOTH, PUPIL, EYE_OFFSET and HEAD_ONLY.")
 	    ("output,o", po::value<std::string>(&outputFile)->default_value("predicted_gaze.txt"),
 	     "Output file that is used to store the predicted gaze positions.")
 	    ("train-file", po::value<std::string>(&trainFile), "Input file that contains the training data.")
@@ -306,6 +309,26 @@ int main(int argc, char ** argv)
 	              << std::endl;
             return 1;
 	}
+	
+	// Check which eye was chosed for the regression
+	if (modelType == "EYE_LEFT"){
+	    mt = EYE_LEFT;
+	} else if (modelType == "EYE_RIGHT"){
+	    mt = EYE_RIGHT;
+	} else if (modelType == "EYE_BOTH"){
+	    mt = EYE_BOTH;
+	} else if (modelType == "PUPIL"){
+	    mt = PUPIL;
+	} else if (modelType == "EYE_OFFSET"){
+	    mt = EYE_OFFSET;
+	} else if (modelType == "HEAD_ONLY"){
+	    mt = HEAD_ONLY;
+	} else {
+	    std::cerr << "Wrong argument for -t/--type: " << modelType
+	              << "\nValid arguments are EYE_LEFT, EYE_RIGHT, EYE_BOTH, PUPIL, EYE_OFFSET and HEAD_ONLY."
+		      << std::endl;
+            return 1;
+	}
     }
     catch (std::exception& e) {
         std::cerr << "Error: " << e.what() << "\n";
@@ -332,9 +355,9 @@ int main(int argc, char ** argv)
         std::vector<std::string> screenCalibrationFiles;
         screenCalibrationFiles.push_back(trainFile);
 	// use the eye model specified by the user
-	if (eyeModel == "EyeModelGp"){screen.calibrate<EyeModelGp>(screenCalibrationFiles);}
-	else if (eyeModel == "EyeModelLinear"){screen.calibrate<EyeModelLinear>(screenCalibrationFiles);}
-	else if (eyeModel == "EyeModelMoore"){screen.calibrate<EyeModelMoore>(screenCalibrationFiles);}
+	if (eyeModel == "EyeModelGp"){screen.calibrate<EyeModelGp>(screenCalibrationFiles, mt);}
+	else if (eyeModel == "EyeModelLinear"){screen.calibrate<EyeModelLinear>(screenCalibrationFiles, mt);}
+	else if (eyeModel == "EyeModelMoore"){screen.calibrate<EyeModelMoore>(screenCalibrationFiles, mt);}
     }
 
     std::cout << "\nScreen coefficients:" << std::endl;
@@ -350,7 +373,7 @@ int main(int argc, char ** argv)
     // The used eye model was chosen by the user
     std::ofstream outStream;
     if (eyeModel == "EyeModelGp"){
-        GazeTracker<EyeModelGp> gt(screen);
+        GazeTracker<EyeModelGp> gt(screen, mt);
 	// Calibrate gaze tracker using loaded data
         std::cout << "\nCalibrating gaze tracker using " << trainSet.size() << " data samples..." << std::endl;
         gt.calibrate(trainSet);
@@ -372,7 +395,7 @@ int main(int argc, char ** argv)
         // Run tracker on test data
         evaluateTracker(gt, testSet, outStream);
     } else if (eyeModel == "EyeModelLinear"){
-        GazeTracker<EyeModelLinear> gt(screen);
+        GazeTracker<EyeModelLinear> gt(screen, mt);
 	// Calibrate gaze tracker using loaded data
         std::cout << "\nCalibrating gaze tracker using " << trainSet.size() << " data samples..." << std::endl;
         gt.calibrate(trainSet);
@@ -394,7 +417,7 @@ int main(int argc, char ** argv)
         // Run tracker on test data
         evaluateTracker(gt, testSet, outStream);
     } else if (eyeModel == "EyeModelMoore"){
-        GazeTracker<EyeModelMoore> gt(screen);
+        GazeTracker<EyeModelMoore> gt(screen, mt);
 	// Calibrate gaze tracker using loaded data
         std::cout << "\nCalibrating gaze tracker using " << trainSet.size() << " data samples..." << std::endl;
         gt.calibrate(trainSet);
