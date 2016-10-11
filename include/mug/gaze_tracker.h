@@ -86,12 +86,18 @@ namespace mug
         {
 	    //std::cout << "used eye: " << eyeModel.getModelType() << std::endl;
             Eigen::Vector2f gazeAngles = eyeModel.predict(s);
-	    Eigen::Vector2f scrProjection = screen.project(s.H_pos, s.H_o, T_trans, T_rot, gazeAngles[0], gazeAngles[1]);
-	    double conf = eyeModel.getConfidence(s);
-	    return Eigen::Vector3f(
-	        scrProjection[0],
-		scrProjection[1],
-		conf);
+            double conf = eyeModel.getConfidence(s);
+            if (eyeModel.getApproach() == GEOMETRIC) {
+	        Eigen::Vector2f scrProjection = screen.project(s.H_pos, s.H_o, T_trans, T_rot, gazeAngles[0], gazeAngles[1]);
+	        return Eigen::Vector3f(
+	            scrProjection[0],
+		    scrProjection[1],
+		    conf);
+            }
+            return Eigen::Vector3f(
+                gazeAngles[0],
+                gazeAngles[1],
+                conf);
         }
 
     private:

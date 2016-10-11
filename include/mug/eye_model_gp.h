@@ -71,6 +71,11 @@ namespace mug
 	 */
 	ModelType getModelType () const { return this->mt; }
 
+        /**
+         * \brief Getter function for the approach that this eye model was implemented for.
+         */
+        Approach getApproach () const { return REGRESSION; }
+
 	/** 
          * \brief Create mapping from pupil positions to gaze angles (yaw, pitch).
          * \param[in] pupilPositions Vector of 2D positions in the eye tracker camera image 

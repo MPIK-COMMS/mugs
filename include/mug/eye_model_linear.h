@@ -68,10 +68,12 @@ namespace mug
 	/**
 	 * \brief Getter function for the member variable mt
 	 */
-	ModelType getModelType () const
-	{
-	    return this->mt;
-	}
+	ModelType getModelType () const { return this->mt; }
+
+        /**
+         * \brief Getter function for the approach that this eye model is implemented for.
+         */
+        Approach getApproach () const { return GEOMETRIC; }
 	
         /** 
          * \brief Perform linear regression to fit pupil positions to gaze angles (yaw, pitch).

@@ -42,6 +42,16 @@ namespace mug
         HEAD_ONLY  = 6
     };
 
+    /**
+     * \brief Enumeration type to distinguish eye models that are used for the geometric
+     *        approach and eye models implemented for the regression approach.
+     */
+    enum Approach
+    {
+        GEOMETRIC  = 1,
+        REGRESSION = 2
+    };
+
     /** 
      * \brief Base class for eye model implementations.
      * \author Bjoern Browatzki and Jonas Ditz
