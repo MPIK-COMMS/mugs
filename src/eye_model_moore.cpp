@@ -65,6 +65,8 @@ public:
     MatrixXd Y;
 };
 
+void EyeModelMoore::fit(const std::vector<Sample> &samples) {}
+
 void EyeModelMoore::fit(const std::vector<Vector2f> &pupilPositions,  const std::vector<Vector2f> &gazeAngles)
 {
     assert(pupilPositions.size() == gazeAngles.size());

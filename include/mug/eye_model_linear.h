@@ -75,6 +75,13 @@ namespace mug
          */
         Approach getApproach () const { return GEOMETRIC; }
 	
+	/** 
+         * \brief Perform linear regression to fit pupil positions to gaze angles (yaw, pitch).
+	 *        This is just a functionless auxiliary function.
+         * \param[in] samples Vector of mug::Sample containing pupil image positions
+         */
+        void fit(const std::vector<Sample> &samples);
+	
         /** 
          * \brief Perform linear regression to fit pupil positions to gaze angles (yaw, pitch).
          * \param[in] pupilPositions Vector of 2D positions in the eye tracker camera image 

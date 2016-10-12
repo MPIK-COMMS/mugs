@@ -49,6 +49,9 @@ Vector2f EyeModelLinear::simpleRegression(const VectorXf &X, const VectorXf &Y)
     return Vector2f(m,b);
 }
 
+void EyeModelLinear::fit(const std::vector<Sample> &samples) {}
+
+
 void EyeModelLinear::fit(const std::vector<Vector2f> &pupilPositions,  const std::vector<Vector2f> &gazeAngles)
 {
     assert(pupilPositions.size() == gazeAngles.size());

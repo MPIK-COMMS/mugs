@@ -72,6 +72,13 @@ namespace mug
          * \brief Getter function for the approach that this eye model was implemented for.
          */
         Approach getApproach () const { return GEOMETRIC; }
+        
+        /** 
+         * \brief Create mapping from pupil positions to gaze angles (yaw, pitch).
+	 *        This is just a functionless auxiliary function.
+         * \param[in] samples Vector of mug::Sample containing pupil image positions
+         */
+        void fit(const std::vector<Sample> &samples);
       
         /** 
          * \brief Create mapping from pupil positions to gaze angles (yaw, pitch).

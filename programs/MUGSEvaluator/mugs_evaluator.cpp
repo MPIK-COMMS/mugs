@@ -386,7 +386,7 @@ int main(int argc, char ** argv)
         std::cout << "\nEvaluating POR prediction on training data..." << std::endl;
         evaluateTracker(gt, trainSet);
 
-        std::cout << "\nEvalutating PORs prediction on test data..." << std::endl;
+        std::cout << "\nEvalutating POR prediction on test data..." << std::endl;
 
         // Load test data
         outStream.open(outputFile.c_str());
@@ -408,7 +408,7 @@ int main(int argc, char ** argv)
         std::cout << "\nEvaluating POR prediction on training data..." << std::endl;
         evaluateTracker(gt, trainSet);
 
-        std::cout << "\nEvalutating PORs prediction on test data..." << std::endl;
+        std::cout << "\nEvalutating POR prediction on test data..." << std::endl;
 
         // Load test data
         outStream.open(outputFile.c_str());
@@ -430,7 +430,7 @@ int main(int argc, char ** argv)
         std::cout << "\nEvaluating POR prediction on training data..." << std::endl;
         evaluateTracker(gt, trainSet);
 
-        std::cout << "\nEvalutating PORs prediction on test data..." << std::endl;
+        std::cout << "\nEvalutating POR prediction on test data..." << std::endl;
 
         // Load test data
         outStream.open(outputFile.c_str());

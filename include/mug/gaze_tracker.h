@@ -62,20 +62,24 @@ namespace mug
          */
         inline void calibrate(const Samples &trainingData)
         {
-            findEyeTransform<EyeModelT>(trainingData, screen, T_trans, T_rot, mt);
+	    if (eyeModel.getApproach() == GEOMETRIC) {
+                findEyeTransform<EyeModelT>(trainingData, screen, T_trans, T_rot, mt);
 	    
-            // calculate true gaze angles based on current head eye transform
-            std::vector<Vector2f> pupils;
-            std::vector<Vector2f> angles;
-            for (std::vector<Sample>::const_iterator s = trainingData.begin(); s != trainingData.end(); s++)
-            {
-                float yaw, pitch;
-                screen.calcGazeAngles(s->target_pos, s->H_pos, s->H_o, T_trans, T_rot, yaw, pitch);
-                pupils.push_back(Vector2f(s->px_left, s->py_left));
-                angles.push_back(Vector2f(yaw, pitch));
-            }
+                // calculate true gaze angles based on current head eye transform
+                std::vector<Vector2f> pupils;
+                std::vector<Vector2f> angles;
+                for (std::vector<Sample>::const_iterator s = trainingData.begin(); s != trainingData.end(); s++)
+                {
+                    float yaw, pitch;
+                    screen.calcGazeAngles(s->target_pos, s->H_pos, s->H_o, T_trans, T_rot, yaw, pitch);
+                    pupils.push_back(Vector2f(s->px_left, s->py_left));
+                    angles.push_back(Vector2f(yaw, pitch));
+                }
 
-            eyeModel.fit(pupils, angles);
+                eyeModel.fit(pupils, angles);
+	    } else {
+	        eyeModel.fit(trainingData);
+	    }
         }
 
         /** 
