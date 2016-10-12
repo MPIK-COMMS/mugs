@@ -43,7 +43,6 @@ namespace mug
             : screen(scr), eyeModel(mt)
         {
 	    this->mt = mt;
-	    std::cout << "used eye: " << eyeModel.getModelType() << std::endl;
 	} 
 
         /** 
