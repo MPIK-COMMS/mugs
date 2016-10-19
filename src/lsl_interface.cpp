@@ -53,6 +53,12 @@ void LslInterface::fetchDataWStim(Samples samples, int terminal)
     {
         this->readFromLSL(head, eye, stimulus, s);
 	
+	std::cout << s.H_pos[0] << " " << s.H_pos[1] << " " << s.H_pos[2] << " " 
+	          << s.H_o[0] << " " << s.H_o[1] << " " << s.H_o[2] << " " 
+		  << s.px_left << " " << s.px_right << " " 
+		  << s.py_left << " " << s.py_right << " " 
+		  << s.target_pos[0] << " " << s.target_pos[1] << "\n";
+	
 	if ((s.target_pos[0] == terminal) or (s.target_pos[1] == terminal))
 	{
 	    head.close_stream();
@@ -63,6 +69,8 @@ void LslInterface::fetchDataWStim(Samples samples, int terminal)
 	
 	samples.push_back(s);
     }
+    
+    std::cout << std::endl;
     
     return;
 }

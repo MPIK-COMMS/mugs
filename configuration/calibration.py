@@ -42,7 +42,7 @@ import pylsl
 
 # Define the sample rate for the LSL outlet.
 # Chose according to your monitor's refreshing rate
-SAMPLERATE = 60 #100
+SAMPLERATE = 100
 
 # Duration of a fixation.
 FIXATIONTIME = 2000
@@ -52,10 +52,18 @@ SPEED = 6
 
 # Set up colors.
 BLACK = (0, 0, 0)
+GRAY = (50, 50, 50)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
+
+# Size of the moving dot
+SIZE = 5
+
+# Thickness of the rings outer line.
+# Set it to zero for a filled circle
+THICKNESS = 4
 
 
 #--------------------------------------------------
@@ -230,8 +238,8 @@ def drawAndRecordConfigSeq(dot, lslStream, sequence, pygameWindow):
     """
     # Display dot at start position until 
     # subject press a button.
-    pygameWindow.fill(WHITE)
-    pygame.draw.circle(pygameWindow, BLACK, (dot.x, dot.y), dot.size, 0)
+    pygameWindow.fill(GRAY)
+    pygame.draw.circle(pygameWindow, WHITE, (dot.x, dot.y), dot.size, THICKNESS)
     pygame.display.update()
     eventOcc = False
     while True:
@@ -249,15 +257,15 @@ def drawAndRecordConfigSeq(dot, lslStream, sequence, pygameWindow):
             dot.y = part[0][1]
             dot.dx = 0
             dot.dy = 0
-            pygameWindow.fill(WHITE)
-            pygame.draw.circle(pygameWindow, BLACK, (dot.x, dot.y), dot.size, 0)
+            pygameWindow.fill(GRAY)
+            pygame.draw.circle(pygameWindow, WHITE, (dot.x, dot.y), dot.size, THICKNESS)
             pygame.display.update()
             startTime = currentTime()
             while (currentTime() < startTime+FIXATIONTIME):
                 lslStream.push_sample([dot.x, dot.y], pylsl.local_clock())
         else: # smooth persuit
-            pygameWindow.fill(WHITE)
-            pygame.draw.circle(pygameWindow, BLACK, (dot.x, dot.y), dot.size, 0)
+            pygameWindow.fill(GRAY)
+            pygame.draw.circle(pygameWindow, WHITE, (dot.x, dot.y), dot.size, THICKNESS)
             pygame.display.update()
             lslStream.push_sample([dot.x, dot.y], pylsl.local_clock())
             dot.dx = part[1]
@@ -265,8 +273,8 @@ def drawAndRecordConfigSeq(dot, lslStream, sequence, pygameWindow):
             dot.calcDirection()
             while True:
                 dot.move()
-                pygameWindow.fill(WHITE)
-                pygame.draw.circle(pygameWindow, BLACK, (dot.x, dot.y), dot.size, 0)
+                pygameWindow.fill(GRAY)
+                pygame.draw.circle(pygameWindow, WHITE, (dot.x, dot.y), dot.size, THICKNESS)
                 pygame.display.update()
                 lslStream.push_sample([dot.x, dot.y], pylsl.local_clock())
                 if dot.reachedGoal(part[0]):
@@ -301,7 +309,7 @@ def configure():
     pygame.display.update()
 
     # Create MovingDot object located at the center of the screen.
-    dot = MovingDot(width/2, height/2, 0, 0, 20)
+    dot = MovingDot(width/2, height/2, 0, 0, SIZE)
 
     # Create the path sequence for the dot.
     configSeq = createSeq(dot.x, dot.y, width, height)
