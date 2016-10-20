@@ -125,13 +125,13 @@ namespace mug
 	 * \param[in] terminal Integer value that is send by the stimulus stream 
 	 *                     to indicate the end of the experiment. (default = -100)
 	 */
-	void fetchDataWStim(std::vector<Sample> samples, int terminal = -100);
+	void fetchDataWStim(std::vector<Sample> &samples, int terminal = -100);
 	
 	/**
 	 * \brief fetch data of an experiment without a presented stimulus.
 	 * \param[out] samples Vector of mug::Sample objects
 	 */
-	void fetchDataWoStim(std::vector<Sample> samples);
+	void fetchDataWoStim(std::vector<Sample> &samples);
 	
     private:
         /**
