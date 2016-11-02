@@ -31,7 +31,11 @@ sudo make install
 #### Build programs
 In mugs directory, type:
 ```bash
-*TODO*
+cd programs/program_of_your_choice
+mkdir build
+cd build
+cmake ..
+make -j4
 ```
 
 ## Contact
