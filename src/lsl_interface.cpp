@@ -21,6 +21,7 @@
 #include "liblsl/lsl_cpp.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <ctime>
 
 #include "mug/lsl_interface.h"
 #include "mug/sample.h"
@@ -48,6 +49,7 @@ void LslInterface::fetchDataWStim(Samples &samples, int terminal)
     stream_inlet eye(resultsEye[0]);
     stream_inlet stimulus(resultsStim[0]);
     
+    time_t start = time(0);
     Sample s;
     while(true)
     {
@@ -62,6 +64,12 @@ void LslInterface::fetchDataWStim(Samples &samples, int terminal)
 	}
 	
 	samples.push_back(s);
+
+        time_t now = time(0);
+        if (now > start+20) {
+            start = time(0);
+            std::cout << "collecting data..." << std::endl;
+        }
     }
     
     return;
@@ -108,7 +116,7 @@ void LslInterface::readFromLSL(stream_inlet &hInlet,
     double stim_ts = sInlet.pull_sample(&stimSample[0], 2);
 
     // store data to Sample
-    s.timestamp = eye_ts;
+    s.timestamp = eye_ts * 1000;
     s.H_pos[0] = headSample[this->h_x]; s.H_pos[1] = headSample[this->h_y]; s.H_pos[2] = headSample[this->h_z];
     s.H_o[0] = headSample[this->h_yaw]; s.H_o[1] = headSample[this->h_pitch]; s.H_o[2] = headSample[this->h_roll];
     s.px_left = eyeSample[this->eLeft_x]; s.py_left = eyeSample[this->eLeft_y];
