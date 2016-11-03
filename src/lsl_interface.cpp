@@ -29,7 +29,32 @@
 using namespace lsl;
 using namespace mug;
 
-void LslInterface::fetchDataWStim(Samples &samples, int terminal)
+void LslInterface::fetchData(Samples &samples)
+{
+    // resolve head stream
+    std::cout << "[MUGS LslInterface] Resolving head tracker stream..." << std::endl;
+    std::vector<stream_info> resultsHead = resolve_stream("name", this->headStreamName);
+    std::cout << "  DONE\n" << std::endl;
+    // resolve eye stream
+    std::cout << "[MUGS LslInterface] Resolving eye tracker stream..." << std::endl;
+    std::vector<stream_info> resultsEye = resolve_stream("name", this->eyeStreamName);
+    std::cout << "  DONE\n" << std::endl;
+    
+    // get inlets for both streams
+    stream_inlet head(resultsHead[0]);
+    stream_inlet eye(resultsEye[0]);
+    
+    Sample s;
+    while(true)
+    {
+        this->readFromLSL(head, eye, s);
+	samples.push_back(s);
+    }
+    
+    return;
+}
+
+void LslInterface::fetchData(Samples &samples, int terminal)
 {
     // resolve head stream
     std::cout << "[MUGS LslInterface] Resolving head tracker stream..." << std::endl;
@@ -75,70 +100,250 @@ void LslInterface::fetchDataWStim(Samples &samples, int terminal)
     return;
 }
 
-void LslInterface::fetchDataWoStim(Samples &samples)
+void mug::LslInterface::record_from_streaminfo(lsl::stream_info src, bool phase_locked)
 {
-    // resolve head stream
-    std::cout << "[MUGS LslInterface] Resolving head tracker stream..." << std::endl;
-    std::vector<stream_info> resultsHead = resolve_stream("name", this->headStreamName);
-    std::cout << "  DONE\n" << std::endl;
-    // resolve eye stream
-    std::cout << "[MUGS LslInterface] Resolving eye tracker stream..." << std::endl;
-    std::vector<stream_info> resultsEye = resolve_stream("name", this->eyeStreamName);
-    std::cout << "  DONE\n" << std::endl;
-    
-    // get inlets for both streams
-    stream_inlet head(resultsHead[0]);
-    stream_inlet eye(resultsEye[0]);
-    
-    Sample s;
-    while(true)
-    {
-        this->readFromLSL(head, eye, s);
-	samples.push_back(s);
+    try {
+        double first_timestamp, last_timestamp;
+	boost::uint64_t sample_count;
+	// obtain a fresh streamid
+	boost::uint32_t streamid = fresh_streamid();
+
+	inlet_p in;
+	lsl::stream_info info;
+
+	// --- headers phase
+	try {
+	    enter_headers_phase(phase_locked);
+
+	    // open an inlet to read from (and subscribe to data immediately)
+	    in.reset(new lsl::stream_inlet(src));
+	    try {
+		in->open_stream(max_open_wait);
+		std::cout << "Opened the stream " << src.name() << "." << std::endl;
+	    } catch(lsl::timeout_error &) {
+		std::cout << "Subscribing to the stream " << src.name() << " is taking relatively long; collection from this stream will be delayed." << std::endl;
+	    }
+
+	    // retrieve the stream header & get its XML version
+	    info = in->info();
+	    std::string as_xml = info.as_xml();
+	    // generate the [StreamHeader] chunk contents...
+	    std::ostringstream hdr_content;
+	    // [StreamId]
+	    write_little_endian(hdr_content.rdbuf(),streamid); 
+	    // [Content]
+	    hdr_content.rdbuf()->sputn(&as_xml[0],as_xml.size());
+	    // write the actual chunk
+	    write_chunk(ct_streamheader,hdr_content.str());
+	    std::cout << "Received header for stream " << src.name() << "." << std::endl;
+
+	    leave_headers_phase(phase_locked);
+	} catch(std::exception &) { 
+	    leave_headers_phase(phase_locked);
+	    throw;
+	}
+
+	// --- streaming phase
+	try {
+	    // this waits until we are done writing all headers for the initial set of (phase-locked) streams (any streams that are discovered later, if any, will not wait)
+	    // we're doing this so that all headers of the initial set of streams come first, so the XDF file is properly sorted unless we discover some streams later which 
+	    // someone "forgot to turn on" before the recording started; in that case the file would have to be post-processed to be in properly sorted (seekable) format
+	    enter_streaming_phase(phase_locked);
+	    std::cout << "Started data collection for stream " << src.name() << "." << std::endl;
+
+	    // now write the actual sample chunks...
+	    switch (src.channel_format()) {
+	        case lsl::cf_int8:
+		    typed_transfer_loop<char>(streamid,info.nominal_srate(),in,first_timestamp,last_timestamp,sample_count);
+		    break;
+		case lsl::cf_int16:
+		    typed_transfer_loop<boost::int16_t>(streamid,info.nominal_srate(),in,first_timestamp,last_timestamp,sample_count);
+		    break;
+		case lsl::cf_int32:
+		    typed_transfer_loop<boost::int32_t>(streamid,info.nominal_srate(),in,first_timestamp,last_timestamp,sample_count);
+		    break;
+		case lsl::cf_float32:
+		    typed_transfer_loop<float>(streamid,info.nominal_srate(),in,first_timestamp,last_timestamp,sample_count);
+		    break;
+		case lsl::cf_double64:
+		    typed_transfer_loop<double>(streamid,info.nominal_srate(),in,first_timestamp,last_timestamp,sample_count);
+		    break;
+		case lsl::cf_string:
+		    typed_transfer_loop<std::string>(streamid,info.nominal_srate(),in,first_timestamp,last_timestamp,sample_count);
+		    break;
+		default:
+		    // unsupported channel format
+		    throw std::runtime_error(std::string("Unsupported channel format in stream ") += src.name());
+		}
+
+	    leave_streaming_phase(phase_locked);
+	} 
+	catch(std::exception &) {
+	    leave_streaming_phase(phase_locked);
+	    throw;
+	}
+
+	// --- footers phase
+	try {
+	    enter_footers_phase(phase_locked);
+
+	    // now generate the [StreamFooter] contents
+	    std::ostringstream footer; footer.precision(16); 
+	    // [StreamId]
+	    write_little_endian(footer.rdbuf(),streamid); 
+	    // [Content]
+	    footer << "<?xml version=\"1.0\"?><info><first_timestamp>" << first_timestamp << "</first_timestamp><last_timestamp>" << last_timestamp << "</last_timestamp><sample_count>" << sample_count << "</sample_count>";
+	    footer << "<clock_offsets>";
+	    {
+	        // including the clock_offset list
+		boost::mutex::scoped_lock lock(offset_mut_);
+		for (offset_list::iterator i=offset_lists_[streamid].begin(),e=offset_lists_[streamid].end();i!=e;i++) {
+		    footer << "<offset><time>" << i->first << "</time><value>" << i->second << "</value></offset>";
+		}
+		footer << "</clock_offsets></info>";
+		write_chunk(ct_streamfooter,footer.str());
+	    }
+
+	    std::cout << "Wrote footer for stream " << src.name() << "." << std::endl;
+	    leave_footers_phase(phase_locked);
+	} 
+	catch(std::exception &) {
+	    leave_footers_phase(phase_locked);
+	    throw;
+	}
+    } 
+    catch(boost::thread_interrupted &) { 
     }
-    
-    return;
+    catch(std::exception &e) {
+        std::cout << "Error in the record_from_streaminfo thread: " << e.what() << std::endl;
+    }
 }
 
-
-void LslInterface::readFromLSL(stream_inlet &hInlet, 
-		               stream_inlet &eInlet,
-		               stream_inlet &sInlet,
-		               Sample &s)
+void LslInterface::record_boundaries()
 {
-
-    // receive data and time stamps
-    float headSample[6];
-    float eyeSample[4];
-    float stimSample[2] = {-1, -1};
-    double head_ts = hInlet.pull_sample(&headSample[0], 6);
-    double eye_ts = eInlet.pull_sample(&eyeSample[0], 4);
-    double stim_ts = sInlet.pull_sample(&stimSample[0], 2);
-
-    // store data to Sample
-    s.timestamp = eye_ts * 1000;
-    s.H_pos[0] = headSample[this->h_x]; s.H_pos[1] = headSample[this->h_y]; s.H_pos[2] = headSample[this->h_z];
-    s.H_o[0] = headSample[this->h_yaw]; s.H_o[1] = headSample[this->h_pitch]; s.H_o[2] = headSample[this->h_roll];
-    s.px_left = eyeSample[this->eLeft_x]; s.py_left = eyeSample[this->eLeft_y];
-    s.px_right = eyeSample[this->eRight_x]; s.py_right = eyeSample[this->eRight_y];
-    s.target_pos[0] = stimSample[this->stim_x]; s.target_pos[1] = stimSample[this->stim_y];
+    try {
+	while (!shutdown_) {
+	    // sleep for the interval
+	    boost::this_thread::sleep(boost::posix_time::milliseconds((int)(boundary_interval*1000)));
+	    // write a [Boundary] chunk...
+	    write_chunk(ct_boundary, std::string((char*)&boundary_uuid[0],16));
+	}
+    } 
+    catch(boost::thread_interrupted &) { 
+    }
+    catch(std::exception &e) {
+        std::cout << "Error in the record_boundaries thread: " << e.what() << std::endl;
+    }
 }
 
-void LslInterface::readFromLSL(stream_inlet &hInlet, 
-		               stream_inlet &eInlet,
-		               Sample &s)
+void LslInterface::record_offsets(uint32_t streamid, inlet_p in)
 {
-
-    // receive data and time stamps
-    float headSample[6];
-    float eyeSample[4];
-    double head_ts = hInlet.pull_sample(&headSample[0], 6);
-    double eye_ts = eInlet.pull_sample(&eyeSample[0], 4);
-
-    // store data to Sample
-    s.timestamp = eye_ts;
-    s.H_pos[0] = headSample[this->h_x]; s.H_pos[1] = headSample[this->h_y]; s.H_pos[2] = headSample[this->h_z];
-    s.H_o[0] = headSample[this->h_yaw]; s.H_o[1] = headSample[this->h_pitch]; s.H_o[2] = headSample[this->h_roll];
-    s.px_left = eyeSample[this->eLeft_x]; s.py_left = eyeSample[this->eLeft_y];
-    s.px_right = eyeSample[this->eRight_x]; s.py_right = eyeSample[this->eRight_y];
+    try {
+	while (!shutdown_) {
+	    // sleep for the interval
+	    boost::this_thread::sleep(boost::posix_time::milliseconds((int)(offset_interval*1000)));
+	    // query the time offset
+	    double offset, now;
+	    try {
+	        offset = in->time_correction(2);
+		now = lsl::local_clock();
+	    }
+	    catch (lsl::timeout_error &) { continue; }
+	    // generate the [ClockOffset] chunk contents
+	    std::ostringstream content; 
+	    // [StreamId]
+	    write_little_endian(content.rdbuf(),streamid); 
+	    // [CollectionTime]
+	    write_little_endian(content.rdbuf(),now-offset);
+	    // [OffsetValue]
+	    write_little_endian(content.rdbuf(),offset);
+	    // write the chunk
+	    write_chunk(ct_clockoffset,content.str());
+	    // also append to the offset lists
+	    boost::mutex::scoped_lock lock(offset_mut_);
+	    offset_lists_[streamid].push_back(std::make_pair(now-offset,offset));
+	}
+    } 
+    catch(boost::thread_interrupted &) { 
+    }
+    catch(std::exception &e) {
+	std::cout << "Error in the record_offsets thread: " << e.what() << std::endl;
+    }
 }
+
+void LslInterface::typed_transfer_loop(uint32_t streamid, double srate, inlet_p in, double& first_timestamp, double& last_timestamp, uint64_t& sample_count)
+{
+    thread_p offset_thread;
+    try {
+	// optionally start an offset collection thread for this stream
+	if (offsets_enabled_)
+	    offset_thread.reset(new boost::thread(&LslInterface::record_offsets,this,streamid,in));
+
+	first_timestamp = -1.0;
+	last_timestamp = 0.0;
+	sample_count = 0;
+	double sample_interval = srate ? 1.0/srate : 0;
+
+	// temporary data
+	std::vector<std::vector<T> > chunk;
+	std::vector<double> timestamps;
+	while (true) {
+	    // check for shutdown condition
+	    {
+		boost::mutex::scoped_lock lock(phase_mut_);
+		if (shutdown_)
+		    break;
+	    }
+
+	    // get a chunk from the stream
+	    if (in->pull_chunk(chunk,timestamps)) {
+		if (first_timestamp == -1.0)
+		    first_timestamp = timestamps[0];
+		// generate [Samples] chunk contents...
+		std::ostringstream content;
+		// [StreamId]
+		write_little_endian(content.rdbuf(),streamid); 
+		// [NumSamplesBytes], [NumSamples]
+		write_varlen_int(content.rdbuf(),chunk.size());
+		// for each sample...
+		for (std::size_t s=0;s<chunk.size();s++) {
+		    // if the time stamp can be deduced from the previous one...
+		    if (last_timestamp + sample_interval == timestamps[s]) {
+			// [TimeStampBytes] (0 for no time stamp)
+			content.rdbuf()->sputc(0);
+		    } else {
+			// [TimeStampBytes]
+			content.rdbuf()->sputc(8);
+			// [TimeStamp]
+			write_little_endian(content.rdbuf(),timestamps[s]);
+		    }
+		    // [Sample1] .. [SampleN]
+		    write_sample_values<T>(content.rdbuf(),chunk[s]);
+		    last_timestamp = timestamps[s];
+		    sample_count++;
+		}
+		// write the actual chunk
+		write_chunk(ct_samples,content.str());
+	    } else 
+		boost::this_thread::sleep(boost::posix_time::milliseconds((int)(chunk_interval*1000)));
+
+	}
+
+	// terminate the offset collection thread, too
+	if (offset_thread) {
+	    offset_thread->interrupt();
+	    offset_thread->timed_join(boost::posix_time::milliseconds((boost::int64_t)(max_join_wait*1000.0)));
+	}
+    } 
+    catch(std::exception &) {
+	if (offset_thread) {
+	    offset_thread->interrupt();
+	    offset_thread->timed_join(boost::posix_time::milliseconds((boost::int64_t)(max_join_wait*1000.0)));
+	}
+	throw;
+    }
+}
+
+
+
+
