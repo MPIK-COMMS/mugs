@@ -128,9 +128,10 @@ int main (int argc, char** argv)
     // create LslInterface object
     LslInterface lslInterface(headStream, eyeStream, stimStream);
     Samples samples;
+    std::string filename = "test_data_output";
     
-    if (stimStream != ""){lslInterface.fetchDataWStim(samples, terminal);}
-    else {lslInterface.fetchDataWoStim(samples);}
+    if (stimStream != ""){lslInterface.fetchData(samples, filename, terminal);}
+    else {lslInterface.fetchData(samples, filename);}
 
-    saveSamples(samples, outputFile);
+    //saveSamples(samples, outputFile);
 }

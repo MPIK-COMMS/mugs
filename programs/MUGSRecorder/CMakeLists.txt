@@ -26,7 +26,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake)
 
 find_package(Eigen REQUIRED)
 find_package(LibGp REQUIRED)
-find_package(Boost COMPONENTS system thread timer filesystem program_options REQUIRED)
+find_package(Boost COMPONENTS system thread timer filesystem iostreams program_options REQUIRED)
 SET(LIBLSL_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/../../3rdparty/liblsl/liblsl.so)
 
 include_directories(${EIGEN_INCLUDE_DIRS})
@@ -52,5 +52,6 @@ target_link_libraries(mugs_recorder
     ${Boost_SYSTEM_LIBRARY} 
     ${Boost_TIMER_LIBRARY} 
     ${Boost_PROGRAM_OPTIONS_LIBRARY}
+    ${Boost_IOSTREAMS_LIBRARY}
     )
 

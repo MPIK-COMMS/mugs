@@ -80,6 +80,94 @@ namespace endian = boost::spirit::detail;
 
 using namespace lsl;
 
+namespace detailLsl{
+    // === WRITER FUNCTIONS ===
+	
+	/**
+	 * \brief Write an integer value in little endian
+ 
+	 *        Derived from portable archive code by christian.pfligersdorffer@eos.info (under boost license)
+	 * \param[out] dst Streambuffer 
+	 * \param[in] t Input value that will be written.
+	 */
+	template <typename T> typename boost::enable_if<boost::is_integral<T> >::type write_little_endian(std::streambuf *dst,const T &t) 
+	{
+	    T temp;
+	    endian::store_little_endian<T,sizeof(T)>(&temp,t);
+	    dst->sputn((char*)&temp,sizeof(temp));
+	}
+	
+	/**
+	 * \brief Write a floating-point value in little endian.
+	 *        Derived from portable archive code by christian.pfligersdorffer@eos.info (under boost license).
+	 * \param[out] dst Streambuffer
+	 * \param[in] t Input value that will be written.
+	 */
+	template <typename T> typename boost::enable_if<boost::is_floating_point<T> >::type write_little_endian(std::streambuf *dst,const T &t) 
+	{
+	    typedef typename fp::detail::fp_traits<T>::type traits;
+	    typename traits::bits bits;
+	    // remap to bit representation
+	    switch (fp::fpclassify(t)) {
+		case FP_NAN: bits = traits::exponent | traits::mantissa; break;
+		case FP_INFINITE: bits = traits::exponent | (t<0) * traits::sign; break;
+		case FP_SUBNORMAL: assert(std::numeric_limits<T>::has_denorm);
+		case FP_ZERO: // note that floats can be ±0.0
+		case FP_NORMAL: traits::get_bits(t, bits); break;
+		default: bits = 0; break;
+	    }
+	    write_little_endian(dst,bits);
+	}
+	
+	/**
+	 * \brief Write a variable-length integer (int8, int32, or int64).
+	 * \param[out] dst Streambuffer
+	 * \param[in] val Input value that will be written.
+	 */
+	inline void write_varlen_int(std::streambuf *dst, boost::uint64_t val) 
+	{
+	    if (val < 256) {
+		dst->sputc(1);
+		dst->sputc((boost::uint8_t)val);
+	    } else
+	    if (val <= 4294967295) {
+		dst->sputc(4);
+		write_little_endian(dst,(boost::uint32_t)val);
+	    } else {
+		dst->sputc(8);
+		write_little_endian(dst,(boost::uint64_t)val);
+	    }
+	}
+	
+	/** 
+	 * \brief Store a sample's values to a stream (numeric version).
+	 * \param[out] dst Streambuffer
+	 * \param[in] sample Sample's value that will be stored. 
+	 */
+	template<class T> inline void write_sample_values(std::streambuf *dst, const std::vector<T> &sample) 
+	{
+	    // [Value1] .. [ValueN] */
+	    for (std::size_t c=0;c<sample.size();c++)
+		write_little_endian(dst,sample[c]);
+	}
+
+	/** 
+	 * \brief Store a sample's values to a stream (string version).
+	 * \param[out] dst Streambuffer
+	 * \param[in] sample Samples's value that will be stored.
+	 */
+	template<> inline void write_sample_values(std::streambuf *dst, const std::vector<std::string> &sample) 
+	{
+	    // [Value1] .. [ValueN] */
+	    for (std::size_t c=0;c<sample.size();c++) {
+		// [NumLengthBytes], [Length] (as varlen int)
+		write_varlen_int(dst,sample[c].size());
+		// [StringContent] */
+		dst->sputn(sample[c].data(),sample[c].size());
+	    }
+	}  
+}
+
 namespace mug
 {
  
@@ -129,17 +217,17 @@ namespace mug
 	int eLeft_x, eLeft_y, eRight_x, eRight_y;  /// Channel number of eye coordinates.
 	int stim_x, stim_y;                        /// Channel number of stimulus coordinates
 	
-	const float boundary_interval = 10; /// approx. interval between boundary chunks, in seconds
-	const float offset_interval = 5;    /// approx. interval between offset measurements, in seconds
-	const float resolve_interval = 5;   /// approx. interval between resolves for outstanding streams on the watchlist, in seconds
-	const float chunk_interval = 0.5;   /// approx. interval between resolves for outstanding streams on the watchlist, in seconds
-	const float max_headers_wait = 10;  /// maximum waiting time for moving past the headers phase while recording, in seconds
-	const float max_footers_wait = 2;   /// maximum waiting time for moving into the footers phase while recording, in seconds
-	const float max_open_wait = 5;      /// maximum waiting time for subscribing to a stream, in seconds (if exceeded, stream subscription will take place later)
-	const float max_join_wait = 5;      /// maximum time that we wait to join a thread, in seconds
+	const float boundary_interval; /// approx. interval between boundary chunks, in seconds
+	const float offset_interval;    /// approx. interval between offset measurements, in seconds
+	const float resolve_interval;   /// approx. interval between resolves for outstanding streams on the watchlist, in seconds
+	const float chunk_interval;   /// approx. interval between resolves for outstanding streams on the watchlist, in seconds
+	const float max_headers_wait;  /// maximum waiting time for moving past the headers phase while recording, in seconds
+	const float max_footers_wait;   /// maximum waiting time for moving into the footers phase while recording, in seconds
+	const float max_open_wait;      /// maximum waiting time for subscribing to a stream, in seconds (if exceeded, stream subscription will take place later)
+	const float max_join_wait;      /// maximum time that we wait to join a thread, in seconds
 	
 	// the signature of the boundary chunk (next chunk begins right after this)
-	const unsigned char boundary_uuid[] = {0x43,0xA5,0x46,0xDC,0xCB,0xF5,0x41,0x0F,0xB3,0x0E,0xD5,0x46,0x73,0x83,0xCB,0xE4};
+	const unsigned char boundary_uuid[16] = {0x43,0xA5,0x46,0xDC,0xCB,0xF5,0x41,0x0F,0xB3,0x0E,0xD5,0x46,0x73,0x83,0xCB,0xE4};
         
         /**
 	 * \brief Constructor of the LslInterface class. Needs names of LSL streams for 
@@ -162,7 +250,10 @@ namespace mug
 	             int headChannels[6], 
 		     int eyeChannels[4],
 		     int stimChannels[2])
-	    : unsorted_(false), shutdown_(false), streamid_(0), streaming_to_finish_(0), headers_to_finish_(0)
+	    : boundary_interval(10), offset_interval(5), resolve_interval(5), chunk_interval(0.5),
+	      max_headers_wait(10), max_footers_wait(2), max_open_wait(5), max_join_wait(5),
+	      unsorted_(false), shutdown_(false), streamid_(0), streaming_to_finish_(0), 
+	      headers_to_finish_(0), offsets_enabled_(true)
 	{
 	    this->headStreamName = hName;
 	    this->eyeStreamName = eName;
@@ -200,7 +291,10 @@ namespace mug
 	LslInterface(std::string hName, 
 		     std::string eName, 
 		     std::string sName)
-	    : unsorted_(false), shutdown_(false), streamid_(0), streaming_to_finish_(0), headers_to_finish_(0)
+	    : boundary_interval(10), offset_interval(5), resolve_interval(5), chunk_interval(0.5),
+	      max_headers_wait(10), max_footers_wait(2), max_open_wait(5), max_join_wait(5),
+	      unsorted_(false), shutdown_(false), streamid_(0), streaming_to_finish_(0), 
+	      headers_to_finish_(0), offsets_enabled_(true)
 	{
             this->headStreamName = hName;
 	    this->eyeStreamName = eName;
@@ -210,26 +304,49 @@ namespace mug
 	    this->eLeft_x = 0; this->eLeft_y = 1;
 	    this->eRight_x = 2; this->eRight_y = 3;
 	    this->stim_x = 0; this->stim_y = 1;
+	    
+	    std::cout <<"shutdown_: " << shutdown_ << std::endl;
 	}
 	
 	/**
 	 * \brief Destructor.
 	 */
-	~LslInterface() {}
+	~LslInterface() 
+	{
+	    try {
+		// set the shutdown flag (from now on no more new streams)
+		{
+	            boost::mutex::scoped_lock lock(phase_mut_);
+		    shutdown_ = true;
+		}
+		// stop the Boundary writer thread
+		boundary_thread_->interrupt();
+		boundary_thread_->timed_join(boost::posix_time::milliseconds((boost::int64_t)(max_join_wait*1000.0)));
+		// wait for all stream threads to join...
+		for (std::size_t k=0;k<stream_threads_.size();k++)
+		    stream_threads_[k]->timed_join(boost::posix_time::milliseconds((boost::int64_t)(max_join_wait*1000.0)));
+		std::cout << "Closing the file." << std::endl;
+	    } 
+	    catch(std::exception &e) {
+	        std::cout << "Error while closing the recording: " << e.what() << std::endl;
+	    }
+	}
         
         /**
 	 * \brief fetch data of an experiment without a presented stimulus.
 	 * \param[out] samples Vector of mug::Sample objects
+	 * \param[in] filename Name of the file that stores recorded data.
 	 */
-	void fetchData(std::vector<Sample> &samples);
+	void fetchData(std::vector<Sample> &samples, std::string& filename);
         
         /**
 	 * \brief Fetch data of an experiment with a presented stimulus.
 	 * \param[out] samples Vector of mug::Sample objects.
+	 * \param[in] filename Name of the file that stores recorded data.
 	 * \param[in] terminal Integer value that is send by the stimulus stream 
-	 *                     to indicate the end of the experiment. (default = -100)
+	 *                     to indicate the end of the experiment.
 	 */
-	void fetchData(std::vector<Sample> &samples, int terminal = -100);
+	void fetchData(std::vector<Sample> &samples, std::string& filename, int terminal);
 	
     private:
         // the file stream
@@ -237,8 +354,8 @@ namespace mug
 	boost::mutex chunk_mut_;
       
         // static information
-	bool offsets_enabled_ = true;  /// whether to collect time offset information alongside with the stream contents
-	bool unsorted_;                /// whether this file may contain unsorted chunks (e.g., of late streams)
+	bool offsets_enabled_;  /// whether to collect time offset information alongside with the stream contents
+	bool unsorted_;         /// whether this file may contain unsorted chunks (e.g., of late streams)
 	
 	// streamid allocation
 	boost::uint32_t streamid_;     /// the highest streamid allocated so far
@@ -294,42 +411,6 @@ namespace mug
 	// === WRITER FUNCTIONS ===
 	
 	/**
-	 * \brief Write an integer value in little endian
- 
-	 *        Derived from portable archive code by christian.pfligersdorffer@eos.info (under boost license)
-	 * \param[out] dst Streambuffer 
-	 * \param[in] t Input value that will be written.
-	 */
-	template <typename T> typename boost::enable_if<boost::is_integral<T> >::type write_little_endian(std::streambuf *dst,const T &t) 
-	{
-	    T temp;
-	    endian::store_little_endian<T,sizeof(T)>(&temp,t);
-	    dst->sputn((char*)&temp,sizeof(temp));
-	}
-	
-	/**
-	 * \brief Write a floating-point value in little endian.
-	 *        Derived from portable archive code by christian.pfligersdorffer@eos.info (under boost license).
-	 * \param[out] dst Streambuffer
-	 * \param[in] t Input value that will be written.
-	 */
-	template <typename T> typename boost::enable_if<boost::is_floating_point<T> >::type write_little_endian(std::streambuf *dst,const T &t) 
-	{
-	    typedef typename fp::detail::fp_traits<T>::type traits;
-	    typename traits::bits bits;
-	    // remap to bit representation
-	    switch (fp::fpclassify(t)) {
-		case FP_NAN: bits = traits::exponent | traits::mantissa; break;
-		case FP_INFINITE: bits = traits::exponent | (t<0) * traits::sign; break;
-		case FP_SUBNORMAL: assert(std::numeric_limits<T>::has_denorm);
-		case FP_ZERO: // note that floats can be ±0.0
-		case FP_NORMAL: traits::get_bits(t, bits); break;
-		default: bits = 0; break;
-	    }
-	    write_little_endian(dst,bits);
-	}
-	
-	/**
 	 * \brief Write a generic chunk.
 	 * \param[in] tag Specifies the type of the chunk.
 	 * \param[in] content Content that should be written to the chunk.
@@ -339,59 +420,11 @@ namespace mug
 	    boost::mutex::scoped_lock lock(chunk_mut_);
 	    // [NumLengthBytes], [Length] (variable-length integer)
 	    std::size_t len = 2 + content.size();
-	    write_varlen_int(file_.rdbuf(),len);
+	    detailLsl::write_varlen_int(file_.rdbuf(),len);
 	    // [Tag]
-	    write_little_endian(file_.rdbuf(),(boost::uint16_t)tag);
+	    detailLsl::write_little_endian(file_.rdbuf(),(boost::uint16_t)tag);
 	    // [Content]
 	    file_.rdbuf()->sputn(content.data(),content.size());
-	}
-	
-	/**
-	 * \brief Write a variable-length integer (int8, int32, or int64).
-	 * \param[out] dst Streambuffer
-	 * \param[in] val Input value that will be written.
-	 */
-	inline void write_varlen_int(std::streambuf *dst, boost::uint64_t val) 
-	{
-	    if (val < 256) {
-		dst->sputc(1);
-		dst->sputc((boost::uint8_t)val);
-	    } else
-	    if (val <= 4294967295) {
-		dst->sputc(4);
-		write_little_endian(dst,(boost::uint32_t)val);
-	    } else {
-		dst->sputc(8);
-		write_little_endian(dst,(boost::uint64_t)val);
-	    }
-	}
-	
-	/** 
-	 * \brief Store a sample's values to a stream (numeric version).
-	 * \param[out] dst Streambuffer
-	 * \param[in] sample Sample's value that will be stored. 
-	 */
-	template<class T> inline void write_sample_values(std::streambuf *dst, const std::vector<T> &sample) 
-	{
-	    // [Value1] .. [ValueN] */
-	    for (std::size_t c=0;c<sample.size();c++)
-		write_little_endian(dst,sample[c]);
-	}
-
-	/** 
-	 * \brief Store a sample's values to a stream (string version).
-	 * \param[out] dst Streambuffer
-	 * \param[in] sample Samples's value that will be stored.
-	 */
-	template<> inline void write_sample_values(std::streambuf *dst, const std::vector<std::string> &sample) 
-	{
-	    // [Value1] .. [ValueN] */
-	    for (std::size_t c=0;c<sample.size();c++) {
-		// [NumLengthBytes], [Length] (as varlen int)
-		write_varlen_int(dst,sample[c].size());
-		// [StringContent] */
-		dst->sputn(sample[c].data(),sample[c].size());
-	    }
 	}
 	
 	

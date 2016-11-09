@@ -38,7 +38,7 @@ project(MUG)
 # search for all required packages
 find_package(Eigen REQUIRED)
 find_package(LibGp REQUIRED)
-find_package(Boost COMPONENTS system thread timer filesystem REQUIRED)
+find_package(Boost COMPONENTS system thread iostreams timer filesystem REQUIRED)
 SET(LIBLSL_LIBRARY ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/liblsl/liblsl.so)
 
 include_directories(${EIGEN_INCLUDE_DIRS})
@@ -68,6 +68,7 @@ target_link_libraries(mug
     ${Boost_FILESYSTEM_LIBRARY} 
     ${Boost_SYSTEM_LIBRARY} 
     ${Boost_TIMER_LIBRARY}
+    ${Boost_IOSTREAMS_LIBRARY}
     )
 install(TARGETS mug
     RUNTIME DESTINATION bin

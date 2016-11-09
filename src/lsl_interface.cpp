@@ -22,82 +22,84 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctime>
+#include <vector>
 
 #include "mug/lsl_interface.h"
 #include "mug/sample.h"
 
-using namespace lsl;
 using namespace mug;
+using namespace detailLsl;
 
-void LslInterface::fetchData(Samples &samples)
+void LslInterface::fetchData(Samples &samples, std::string& filename )
 {
     // resolve head stream
     std::cout << "[MUGS LslInterface] Resolving head tracker stream..." << std::endl;
-    std::vector<stream_info> resultsHead = resolve_stream("name", this->headStreamName);
+    std::vector<lsl::stream_info> resultsHead = lsl::resolve_stream("name", this->headStreamName);
     std::cout << "  DONE\n" << std::endl;
     // resolve eye stream
     std::cout << "[MUGS LslInterface] Resolving eye tracker stream..." << std::endl;
-    std::vector<stream_info> resultsEye = resolve_stream("name", this->eyeStreamName);
+    std::vector<lsl::stream_info> resultsEye = lsl::resolve_stream("name", this->eyeStreamName);
     std::cout << "  DONE\n" << std::endl;
     
-    // get inlets for both streams
-    stream_inlet head(resultsHead[0]);
-    stream_inlet eye(resultsEye[0]);
+    std::vector<lsl::stream_info> streams;
+    streams.push_back(resultsHead[0]);
+    streams.push_back(resultsEye[0]);
     
-    Sample s;
-    while(true)
-    {
-        this->readFromLSL(head, eye, s);
-	samples.push_back(s);
-    }
+    std::cout <<"shutdown_: " << shutdown_ << std::endl;
     
-    return;
+    // open file stream
+    std::cout << "Opening file " << filename << " ... ";
+    if (boost::iends_with(filename,".xdfz"))
+        file_.push(boost::iostreams::zlib_compressor());
+    file_.push(boost::iostreams::file_descriptor_sink(filename,std::ios::binary | std::ios::trunc));
+    std::cout << "done." << std::endl;
+    // [MagicCode]
+    file_.rdbuf()->sputn("XDF:",4);
+    // [FileHeader] chunk
+    write_chunk(mug::CT_FILEHEADER,"<?xml version=\"1.0\"?><info><version>1.0</version></info>");
+    std::cout <<"shutdown_: " << shutdown_ << std::endl;
+    // create a recording thread for each stream
+    for (std::size_t k=0;k<streams.size();k++)
+        stream_threads_.push_back(thread_p(new boost::thread(&LslInterface::record_from_streaminfo,this,streams[k],true)));
+    // create a boundary chunk writer thread
+    boundary_thread_.reset(new boost::thread(&LslInterface::record_boundaries,this));
 }
 
-void LslInterface::fetchData(Samples &samples, int terminal)
+void LslInterface::fetchData(Samples &samples, std::string& filename , int terminal)
 {
     // resolve head stream
     std::cout << "[MUGS LslInterface] Resolving head tracker stream..." << std::endl;
-    std::vector<stream_info> resultsHead = resolve_stream("name", this->headStreamName);
+    std::vector<lsl::stream_info> resultsHead = lsl::resolve_stream("name", this->headStreamName);
     std::cout << "  DONE\n" << std::endl;
     // resolve eye stream
     std::cout << "[MUGS LslInterface] Resolving eye tracker stream..." << std::endl;
-    std::vector<stream_info> resultsEye = resolve_stream("name", this->eyeStreamName);
+    std::vector<lsl::stream_info> resultsEye = lsl::resolve_stream("name", this->eyeStreamName);
     std::cout << "  DONE\n" << std::endl;
     // resolve stimulus stream
     std::cout << "[MUGS LslInterface] Resolving stimulus stream..." << std::endl;
-    std::vector<stream_info> resultsStim = resolve_stream("name", this->stimStreamName);
+    std::vector<lsl::stream_info> resultsStim = lsl::resolve_stream("name", this->stimStreamName);
     std::cout << "  DONE\n" << std::endl;
     
-    // get inlets for all three streams
-    stream_inlet head(resultsHead[0]);
-    stream_inlet eye(resultsEye[0]);
-    stream_inlet stimulus(resultsStim[0]);
+    std::vector<lsl::stream_info> streams;
+    streams.push_back(resultsHead[0]);
+    streams.push_back(resultsEye[0]);
+    streams.push_back(resultsStim[0]);
     
-    time_t start = time(0);
-    Sample s;
-    while(true)
-    {
-        this->readFromLSL(head, eye, stimulus, s);
-	
-	if ((s.target_pos[0] == terminal) or (s.target_pos[1] == terminal))
-	{
-	    head.close_stream();
-	    eye.close_stream();
-	    stimulus.close_stream();
-	    break;
-	}
-	
-	samples.push_back(s);
-
-        time_t now = time(0);
-        if (now > start+20) {
-            start = time(0);
-            std::cout << "collecting data..." << std::endl;
-        }
-    }
-    
-    return;
+    // open file stream
+    std::cout << "Opening file " << filename << " ... ";
+    if (boost::iends_with(filename,".xdfz"))
+        file_.push(boost::iostreams::zlib_compressor());
+    file_.push(boost::iostreams::file_descriptor_sink(filename,std::ios::binary | std::ios::trunc));
+    std::cout << "done." << std::endl;
+    // [MagicCode]
+    file_.rdbuf()->sputn("XDF:",4);
+    // [FileHeader] chunk
+    write_chunk(mug::CT_FILEHEADER,"<?xml version=\"1.0\"?><info><version>1.0</version></info>");
+    // create a recording thread for each stream
+    for (std::size_t k=0;k<streams.size();k++)
+        stream_threads_.push_back(thread_p(new boost::thread(&LslInterface::record_from_streaminfo,this,streams[k],true)));
+    // create a boundary chunk writer thread
+    boundary_thread_.reset(new boost::thread(&LslInterface::record_boundaries,this));
 }
 
 void mug::LslInterface::record_from_streaminfo(lsl::stream_info src, bool phase_locked)
@@ -110,6 +112,8 @@ void mug::LslInterface::record_from_streaminfo(lsl::stream_info src, bool phase_
 
 	inlet_p in;
 	lsl::stream_info info;
+	
+        std::cout << "streamid: " << streamid << ", shutdown_: " << shutdown_ << std::endl;
 
 	// --- headers phase
 	try {
@@ -134,8 +138,10 @@ void mug::LslInterface::record_from_streaminfo(lsl::stream_info src, bool phase_
 	    // [Content]
 	    hdr_content.rdbuf()->sputn(&as_xml[0],as_xml.size());
 	    // write the actual chunk
-	    write_chunk(ct_streamheader,hdr_content.str());
+	    write_chunk(CT_STREAMHEADER,hdr_content.str());
 	    std::cout << "Received header for stream " << src.name() << "." << std::endl;
+	    
+	    std::cout << "streamid: " << streamid << ", shutdown_: " << shutdown_ << std::endl;
 
 	    leave_headers_phase(phase_locked);
 	} catch(std::exception &) { 
@@ -150,6 +156,8 @@ void mug::LslInterface::record_from_streaminfo(lsl::stream_info src, bool phase_
 	    // someone "forgot to turn on" before the recording started; in that case the file would have to be post-processed to be in properly sorted (seekable) format
 	    enter_streaming_phase(phase_locked);
 	    std::cout << "Started data collection for stream " << src.name() << "." << std::endl;
+	    
+	    std::cout << "streamid: " << streamid << ", shutdown_: " << shutdown_ << std::endl;
 
 	    // now write the actual sample chunks...
 	    switch (src.channel_format()) {
@@ -201,7 +209,7 @@ void mug::LslInterface::record_from_streaminfo(lsl::stream_info src, bool phase_
 		    footer << "<offset><time>" << i->first << "</time><value>" << i->second << "</value></offset>";
 		}
 		footer << "</clock_offsets></info>";
-		write_chunk(ct_streamfooter,footer.str());
+		write_chunk(CT_STREAMFOOTER,footer.str());
 	    }
 
 	    std::cout << "Wrote footer for stream " << src.name() << "." << std::endl;
@@ -226,7 +234,7 @@ void LslInterface::record_boundaries()
 	    // sleep for the interval
 	    boost::this_thread::sleep(boost::posix_time::milliseconds((int)(boundary_interval*1000)));
 	    // write a [Boundary] chunk...
-	    write_chunk(ct_boundary, std::string((char*)&boundary_uuid[0],16));
+	    write_chunk(mug::CT_BOUNDARY, std::string((char*)&boundary_uuid[0],16));
 	}
     } 
     catch(boost::thread_interrupted &) { 
@@ -258,7 +266,7 @@ void LslInterface::record_offsets(uint32_t streamid, inlet_p in)
 	    // [OffsetValue]
 	    write_little_endian(content.rdbuf(),offset);
 	    // write the chunk
-	    write_chunk(ct_clockoffset,content.str());
+	    write_chunk(mug::CT_CLOCKOFFSET,content.str());
 	    // also append to the offset lists
 	    boost::mutex::scoped_lock lock(offset_mut_);
 	    offset_lists_[streamid].push_back(std::make_pair(now-offset,offset));
@@ -271,7 +279,7 @@ void LslInterface::record_offsets(uint32_t streamid, inlet_p in)
     }
 }
 
-void LslInterface::typed_transfer_loop(uint32_t streamid, double srate, inlet_p in, double& first_timestamp, double& last_timestamp, uint64_t& sample_count)
+template<class T> void LslInterface::typed_transfer_loop(uint32_t streamid, double srate, inlet_p in, double& first_timestamp, double& last_timestamp, uint64_t& sample_count)
 {
     thread_p offset_thread;
     try {
@@ -288,6 +296,8 @@ void LslInterface::typed_transfer_loop(uint32_t streamid, double srate, inlet_p 
 	std::vector<std::vector<T> > chunk;
 	std::vector<double> timestamps;
 	while (true) {
+	    std::cout << "reading loop of stream " << streamid << ", shutdown_ = " << shutdown_ << std::endl;
+	  
 	    // check for shutdown condition
 	    {
 		boost::mutex::scoped_lock lock(phase_mut_);
@@ -323,7 +333,7 @@ void LslInterface::typed_transfer_loop(uint32_t streamid, double srate, inlet_p 
 		    sample_count++;
 		}
 		// write the actual chunk
-		write_chunk(ct_samples,content.str());
+		write_chunk(mug::CT_SAMPLES,content.str());
 	    } else 
 		boost::this_thread::sleep(boost::posix_time::milliseconds((int)(chunk_interval*1000)));
 
