@@ -22,6 +22,7 @@
 
 #include <string.h>
 #include <iostream>
+#include <unistd.h>
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
@@ -128,10 +129,12 @@ int main (int argc, char** argv)
     // create LslInterface object
     LslInterface lslInterface(headStream, eyeStream, stimStream);
     Samples samples;
-    std::string filename = "test_data_output";
+    std::string filename = "test_data_output.xdfz";
     
     if (stimStream != ""){lslInterface.fetchData(samples, filename, terminal);}
     else {lslInterface.fetchData(samples, filename);}
+    
+    usleep(10000000);
 
     //saveSamples(samples, outputFile);
 }

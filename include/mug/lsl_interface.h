@@ -216,6 +216,7 @@ namespace mug
 	int h_x, h_y, h_z, h_yaw, h_pitch, h_roll; /// Channel number of head coordinates.
 	int eLeft_x, eLeft_y, eRight_x, eRight_y;  /// Channel number of eye coordinates.
 	int stim_x, stim_y;                        /// Channel number of stimulus coordinates
+	int terminal;                              /// Stimulus position that indicates the end of the stimulus sequence.
 	
 	const float boundary_interval; /// approx. interval between boundary chunks, in seconds
 	const float offset_interval;    /// approx. interval between offset measurements, in seconds
@@ -313,7 +314,7 @@ namespace mug
 	 */
 	~LslInterface() 
 	{
-	    try {
+	    try {	      
 		// set the shutdown flag (from now on no more new streams)
 		{
 	            boost::mutex::scoped_lock lock(phase_mut_);
@@ -325,10 +326,10 @@ namespace mug
 		// wait for all stream threads to join...
 		for (std::size_t k=0;k<stream_threads_.size();k++)
 		    stream_threads_[k]->timed_join(boost::posix_time::milliseconds((boost::int64_t)(max_join_wait*1000.0)));
-		std::cout << "Closing the file." << std::endl;
+		std::cout << "[MUGS LslInterface] Closing the file." << std::endl;
 	    } 
 	    catch(std::exception &e) {
-	        std::cout << "Error while closing the recording: " << e.what() << std::endl;
+	        std::cout << "[MUGS LslInterface] Error while closing the recording: " << e.what() << std::endl;
 	    }
 	}
         
@@ -401,11 +402,87 @@ namespace mug
 	 * \brief Sample collection loop for a numeric stream.
 	 * \param[in] streamid Id of the stream that is used.
 	 * \param[in] srate Sampling rate of the stream.
+	 * \param[in] sname Name of the stream.
 	 * \param[out] first_timestamp First timestamp. Used for synchronisation.
 	 * \param[out] last_timestamp Last timestamp. Used for synchronisation.
 	 * \param[out] sample_count Counter to track the number of samples.
 	 */
-	template<class T> void typed_transfer_loop(boost::uint32_t streamid, double srate, inlet_p in, double &first_timestamp, double &last_timestamp, boost::uint64_t &sample_count);
+	template<typename T> 
+	void typed_transfer_loop(uint32_t streamid, double srate, std::string sname, inlet_p in, 
+						    double& first_timestamp, double& last_timestamp, uint64_t& sample_count)
+	{
+	    thread_p offset_thread;
+	    try {
+		// optionally start an offset collection thread for this stream
+		if (offsets_enabled_)
+		    offset_thread.reset(new boost::thread(&LslInterface::record_offsets,this,streamid,in));
+
+		first_timestamp = -1.0;
+		last_timestamp = 0.0;
+		sample_count = 0;
+		double sample_interval = srate ? 1.0/srate : 0;
+
+		// temporary data
+		std::vector<std::vector<T> > chunk;
+		std::vector<double> timestamps;
+		while (true) {
+		    //std::cout << "reading loop of stream " << streamid << ", shutdown_ = " << shutdown_ << std::endl;
+		  
+		    // check for shutdown condition
+		    {
+			boost::mutex::scoped_lock lock(phase_mut_);
+			if (shutdown_)
+			    break;
+		    }
+
+		    // get a chunk from the stream
+		    if (in->pull_chunk(chunk,timestamps)) {
+			if (first_timestamp == -1.0)
+			    first_timestamp = timestamps[0];
+			// generate [Samples] chunk contents...
+			std::ostringstream content;
+			// [StreamId]
+			detailLsl::write_little_endian(content.rdbuf(),streamid); 
+			// [NumSamplesBytes], [NumSamples]
+			detailLsl::write_varlen_int(content.rdbuf(),chunk.size());
+			// for each sample...
+			for (std::size_t s=0;s<chunk.size();s++) {
+			    // if the time stamp can be deduced from the previous one...
+			    if (last_timestamp + sample_interval == timestamps[s]) {
+				// [TimeStampBytes] (0 for no time stamp)
+				content.rdbuf()->sputc(0);
+			    } else {
+				// [TimeStampBytes]
+				content.rdbuf()->sputc(8);
+				// [TimeStamp]
+				detailLsl::write_little_endian(content.rdbuf(),timestamps[s]);
+			    }
+			    // [Sample1] .. [SampleN]
+			    detailLsl::write_sample_values<T>(content.rdbuf(),chunk[s]);
+			    last_timestamp = timestamps[s];
+			    sample_count++;
+			}
+			// write the actual chunk
+			write_chunk(mug::CT_SAMPLES,content.str());
+		    } else 
+			boost::this_thread::sleep(boost::posix_time::milliseconds((int)(chunk_interval*1000)));
+
+		}
+
+		// terminate the offset collection thread, too
+		if (offset_thread) {
+		    offset_thread->interrupt();
+		    offset_thread->timed_join(boost::posix_time::milliseconds((boost::int64_t)(max_join_wait*1000.0)));
+		}
+	    } 
+	    catch(std::exception &) {
+		if (offset_thread) {
+		    offset_thread->interrupt();
+		    offset_thread->timed_join(boost::posix_time::milliseconds((boost::int64_t)(max_join_wait*1000.0)));
+		}
+		throw;
+	    }
+	}
 	
 	
 	// === WRITER FUNCTIONS ===
@@ -514,6 +591,88 @@ namespace mug
 		return ++streamid_;
 	}
     };
+    
+    
+    template<> 
+    void LslInterface::typed_transfer_loop<boost::int16_t>(uint32_t streamid, double srate, std::string sname, inlet_p in, 
+								double& first_timestamp, double& last_timestamp, uint64_t& sample_count)
+    {
+	thread_p offset_thread;
+	try {
+	    // optionally start an offset collection thread for this stream
+	    if (offsets_enabled_)
+		offset_thread.reset(new boost::thread(&LslInterface::record_offsets,this,streamid,in));
+
+	    first_timestamp = -1.0;
+	    last_timestamp = 0.0;
+	    sample_count = 0;
+	    double sample_interval = srate ? 1.0/srate : 0;
+
+	    // temporary data
+	    std::vector<std::vector<boost::int16_t> > chunk;
+	    std::vector<double> timestamps;
+	    while (true) {
+		//std::cout << "reading loop of stream " << streamid << ", shutdown_ = " << shutdown_ << std::endl;
+	      
+		// check for shutdown condition
+		{
+		    boost::mutex::scoped_lock lock(phase_mut_);
+		    if (shutdown_)
+			break;
+		}
+
+		// get a chunk from the stream
+		if (in->pull_chunk(chunk,timestamps)) {
+		    if (first_timestamp == -1.0)
+			first_timestamp = timestamps[0];
+		    // generate [Samples] chunk contents...
+		    std::ostringstream content;
+		    // [StreamId]
+		    detailLsl::write_little_endian(content.rdbuf(),streamid); 
+		    // [NumSamplesBytes], [NumSamples]
+		    detailLsl::write_varlen_int(content.rdbuf(),chunk.size());
+		    // for each sample...
+		    for (std::size_t s=0;s<chunk.size();s++) {
+			// if the time stamp can be deduced from the previous one...
+			if (last_timestamp + sample_interval == timestamps[s]) {
+			    // [TimeStampBytes] (0 for no time stamp)
+			    content.rdbuf()->sputc(0);
+			} else {
+			    // [TimeStampBytes]
+			    content.rdbuf()->sputc(8);
+			    // [TimeStamp]
+			    detailLsl::write_little_endian(content.rdbuf(),timestamps[s]);
+			}
+			// [Sample1] .. [SampleN]
+			if (sname == stimStreamName && chunk[s][0] == terminal){
+			    shutdown_ = true;
+			    break;
+			}
+			detailLsl::write_sample_values<boost::int16_t>(content.rdbuf(),chunk[s]);
+			last_timestamp = timestamps[s];
+			sample_count++;
+		    }
+		    // write the actual chunk
+		    write_chunk(mug::CT_SAMPLES,content.str());
+		} else 
+		    boost::this_thread::sleep(boost::posix_time::milliseconds((int)(chunk_interval*1000)));
+
+	    }
+
+	    // terminate the offset collection thread, too
+	    if (offset_thread) {
+		offset_thread->interrupt();
+		offset_thread->timed_join(boost::posix_time::milliseconds((boost::int64_t)(max_join_wait*1000.0)));
+	    }
+	} 
+	catch(std::exception &) {
+	    if (offset_thread) {
+		offset_thread->interrupt();
+		offset_thread->timed_join(boost::posix_time::milliseconds((boost::int64_t)(max_join_wait*1000.0)));
+	    }
+	    throw;
+	}
+    }
 }
 
 #endif
