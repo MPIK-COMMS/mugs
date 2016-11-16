@@ -282,7 +282,7 @@ def drawAndRecordConfigSeq(dot, lslStream, sequence, pygameWindow):
  
     # Indicate that the calibration sequence is over
     afterTime = currentTime()
-    while (currentTime() < afterTime+5000):
+    while (currentTime() < afterTime+500):
         lslStream.push_sample([-100, -100], pylsl.local_clock())
 
 def configure():

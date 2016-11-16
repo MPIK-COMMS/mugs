@@ -22,7 +22,6 @@
 
 #include <string.h>
 #include <iostream>
-#include <unistd.h>
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
@@ -134,7 +133,5 @@ int main (int argc, char** argv)
     if (stimStream != ""){lslInterface.fetchData(samples, filename, terminal);}
     else {lslInterface.fetchData(samples, filename);}
     
-    usleep(10000000);
-
     //saveSamples(samples, outputFile);
 }

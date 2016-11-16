@@ -593,7 +593,7 @@ namespace mug
     };
     
     
-    template<> 
+    template<> inline
     void LslInterface::typed_transfer_loop<boost::int16_t>(uint32_t streamid, double srate, std::string sname, inlet_p in, 
 								double& first_timestamp, double& last_timestamp, uint64_t& sample_count)
     {
