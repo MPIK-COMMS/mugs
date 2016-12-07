@@ -335,19 +335,17 @@ namespace mug
         
         /**
 	 * \brief fetch data of an experiment without a presented stimulus.
-	 * \param[out] samples Vector of mug::Sample objects
 	 * \param[in] filename Name of the file that stores recorded data.
 	 */
-	void fetchData(std::vector<Sample> &samples, std::string& filename);
+	void fetchData(std::string& filename);
         
         /**
 	 * \brief Fetch data of an experiment with a presented stimulus.
-	 * \param[out] samples Vector of mug::Sample objects.
 	 * \param[in] filename Name of the file that stores recorded data.
 	 * \param[in] terminal Integer value that is send by the stimulus stream 
 	 *                     to indicate the end of the experiment.
 	 */
-	void fetchData(std::vector<Sample> &samples, std::string& filename, int terminal);
+	void fetchData(std::string& filename, int terminal);
 	
     private:
         // the file stream

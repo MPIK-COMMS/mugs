@@ -30,7 +30,7 @@
 using namespace mug;
 using namespace detailLsl;
 
-void LslInterface::fetchData(Samples &samples, std::string& filename )
+void LslInterface::fetchData(std::string& filename )
 {
     // resolve head stream
     std::cout << "[MUGS LslInterface] Resolving head tracker stream..." << std::endl;
@@ -60,10 +60,15 @@ void LslInterface::fetchData(Samples &samples, std::string& filename )
         stream_threads_.push_back(thread_p(new boost::thread(&LslInterface::record_from_streaminfo,this,streams[k],true)));
     // create a boundary chunk writer thread
     boundary_thread_.reset(new boost::thread(&LslInterface::record_boundaries,this));
+    
+    // wait until user ends the recording
+    std::cout << "\n[MUGS LslInterface] Recording tracking data. Press ENTER to stop...\n" << std::endl;
+    int c;
+    c = std::getchar();
 }
 
 
-void LslInterface::fetchData(Samples &samples, std::string& filename , int terminal)
+void LslInterface::fetchData(std::string& filename , int terminal)
 {
     // resolve head stream
     std::cout << "[MUGS LslInterface] Resolving head tracker stream..." << std::endl;

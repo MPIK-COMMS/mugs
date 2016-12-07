@@ -59,8 +59,8 @@ int main (int argc, char** argv)
 	config.add_options()
 	    ("terminal,t", po::value<int>(&terminal)->default_value(-100), 
 	     "Dot position that is send to indicate the end of the stimulus sequence (Default: -100).")
-	    ("output,o", po::value<std::string>(&outputFile)->default_value("samples.mugs"),
-	     "Output file that is used to store the predicted gaze positions.")
+	    ("output,o", po::value<std::string>(&outputFile)->default_value("samples.xdf"),
+	     "Output file that is used to store the recorded tracking data.")
 	    ("head-stream,H", po::value<std::string>(&headStream), "Name of the LSL stream that sends the head coordinates.")
 	    ("eye-stream,E", po::value<std::string>(&eyeStream), "Name of the LSL stream that sends the eye coordinates.")
 	    ("stim-stream,S", po::value<std::string>(&stimStream)->default_value(""), 
@@ -86,8 +86,8 @@ int main (int argc, char** argv)
 	    std::cout << "mugs_recorder - A recording tool for MUGS\n\n"
 	              << "With this software one can record the head, eye and stimulus movements during\n"
 		      << "an experiment. Head, eye and stimulus coordinates have to be sent with LSL.\n"
-		      << "The results will be stored in a mugs file that can be immediately used for gaze\n"
-		      << "prediction with MUGS.\n\n";
+		      << "The results will be stored in a xdf or xdfz file that can be converted into a\n"
+		      << "mugs file with the Python script convertXDFtomugs.py.\n\n";
 	    std::cout << visible << std::endl;
 	    return 0;
 	}
@@ -127,11 +127,7 @@ int main (int argc, char** argv)
     
     // create LslInterface object
     LslInterface lslInterface(headStream, eyeStream, stimStream);
-    Samples samples;
-    std::string filename = "test_data_output.xdfz";
     
-    if (stimStream != ""){lslInterface.fetchData(samples, filename, terminal);}
-    else {lslInterface.fetchData(samples, filename);}
-    
-    //saveSamples(samples, outputFile);
+    if (stimStream != ""){lslInterface.fetchData(outputFile, terminal);}
+    else {lslInterface.fetchData(outputFile);}
 }
