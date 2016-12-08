@@ -42,7 +42,7 @@ import pylsl
 
 # Define the sample rate for the LSL outlet.
 # Chose according to your monitor's refreshing rate
-SAMPLERATE = 100
+SAMPLERATE = 60
 
 # Duration of a fixation.
 FIXATIONTIME = 2000
@@ -236,6 +236,9 @@ def drawAndRecordConfigSeq(dot, lslStream, sequence, pygameWindow):
     pygameWindow - Pygame window object to visualize the 
                    Experiment.
     """
+    # Create a Clock object
+    clock = pygame.time.Clock()
+
     # Display dot at start position until 
     # subject press a button.
     pygameWindow.fill(GRAY)
@@ -262,10 +265,15 @@ def drawAndRecordConfigSeq(dot, lslStream, sequence, pygameWindow):
             pygame.display.update()
             startTime = currentTime()
             while (currentTime() < startTime+FIXATIONTIME):
+                pygameWindow.fill(GRAY)
+                pygame.draw.circle(pygameWindow, WHITE, (dot.x, dot.y), dot.size, THICKNESS)
+                clock.tick(SAMPLERATE)
+                pygame.display.update()
                 lslStream.push_sample([dot.x, dot.y], pylsl.local_clock())
         else: # smooth persuit
             pygameWindow.fill(GRAY)
             pygame.draw.circle(pygameWindow, WHITE, (dot.x, dot.y), dot.size, THICKNESS)
+            clock.tick(SAMPLERATE)
             pygame.display.update()
             lslStream.push_sample([dot.x, dot.y], pylsl.local_clock())
             dot.dx = part[1]
@@ -275,6 +283,7 @@ def drawAndRecordConfigSeq(dot, lslStream, sequence, pygameWindow):
                 dot.move()
                 pygameWindow.fill(GRAY)
                 pygame.draw.circle(pygameWindow, WHITE, (dot.x, dot.y), dot.size, THICKNESS)
+                clock.tick(SAMPLERATE)
                 pygame.display.update()
                 lslStream.push_sample([dot.x, dot.y], pylsl.local_clock())
                 if dot.reachedGoal(part[0]):
