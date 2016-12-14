@@ -25,6 +25,7 @@
 #include <fstream>
 #include <vector>
 #include <iostream>
+#include <limits>
 
 using namespace Eigen;
 
@@ -93,21 +94,40 @@ namespace mug
 
         file.close();
     }
+    
+    /**
+     * \brief Scale the range of the eye data to [0,2].
+     * \param[out] samples Vector containing tracking data.
+     * \param[in] min Minimum value of the eye data.
+     * \param[in] max Maximum value of the eye data.
+     */
+    inline void rescaleEye(std::vector<Sample> &samples, const float &min, const float &max)
+    {
+        for (std::vector<Sample>::iterator it = samples.begin(); it != samples.end(); it++)
+	{
+	    it->px_left = (2*(it->px_left - min))/(max - min);
+	    it->py_left = (2*(it->py_left - min))/(max - min);
+	    it->px_right = (2*(it->px_right - min))/(max - min);
+	    it->py_right = (2*(it->py_right - min))/(max - min);
+	}
+    }
 
     /** 
      * \brief Read a sample from an input stream
      * \param[in] file Input stream
      * \param[out] s \ref Sample object to store data in
+     * \param[out] min Minimum of the EyeTracker data.
+     * \param[out] max Maximum of the EyeTracker data.
      * \return True if the load was successful, False otherwise.
      */
-    inline bool loadSample(std::ifstream &file, Sample &s)
+    inline bool loadSample(std::ifstream &file, Sample &s, float &min, float &max)
     {
         // dummy vars to load data files containing Eyelink predictions
         float gx_left, gx_right, gy_left, gy_right; 
 
         if (file >> s.timestamp 
                 >> s.H_pos[0] >> s.H_pos[1] >> s.H_pos[2]
-                >> s.H_o[2] >> s.H_o[1] >> s.H_o[0] // pitch and yaw are switched in data files (2<->0)
+                >> s.H_o[0] >> s.H_o[1] >> s.H_o[2]
                 >> s.px_left >> s.py_left
                 >> s.px_right >> s.py_right
                 >> gx_left >> gy_left
@@ -120,11 +140,11 @@ namespace mug
                 s.H_o[0] += 2*M_PI;
             s.H_o[0] -= M_PI;
             s.H_o[0] *= -1;
-            // Pupil values are in range [5000-25000]. Scale down for numeric reasons. 
-            s.px_left  /= 10000;
-            s.py_left  /= 10000;
-            s.px_right /= 10000;
-            s.py_right /= 10000;
+            // determine the min and max of the eye data
+	    float auxMin = std::min(s.px_left, std::min(s.py_left, std::min(s.px_right, s.py_right)));
+	    float auxMax = std::max(s.px_left, std::max(s.py_left, std::max(s.px_right, s.py_right)));
+	    if (min > auxMin) {min = auxMin;}
+	    if (max < auxMax) {max = auxMax;}
             return true;
         }
         else
@@ -139,6 +159,8 @@ namespace mug
      */
     inline std::vector<Sample> loadSamples(const std::string &filename)
     {
+        float min = std::numeric_limits<float>::max();
+	float max = std::numeric_limits<float>::min();
         std::vector<Sample> samples;
         std::ifstream file(filename.c_str());
         if (! file.is_open())
@@ -148,11 +170,14 @@ namespace mug
         }
 
         Sample s;
-        while (loadSample(file, s))
+        while (loadSample(file, s, min, max))
         {
             samples.push_back(s);
         }
         file.close();
+	
+	// rescale the eye data
+	rescaleEye(samples, min, max);
 
         return samples;
     }
