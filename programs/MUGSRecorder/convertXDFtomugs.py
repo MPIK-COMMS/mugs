@@ -14,28 +14,39 @@ def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
   return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
 
 
-def writeFile(streams, indices_stream, indices_head, indices_eye, filename):
-  # first case: stimulus was presented
-  if indices_stream[2] != -1:
-    f = open(filename, 'w')
-    for i in range(0, len(streams[indices_stream[2]]["time_stamps"])):
-      write_str = "%f %f %f %f %f %f %f %f %f %f %f 0 0 0 0 %i %i\n" % (streams[indices_stream[2]]["time_stamps"][i],
-           streams[indices_stream[0]]["time_series"][indices_head[i]][0], streams[indices_stream[0]]["time_series"][indices_head[i]][1], streams[indices_stream[0]]["time_series"][indices_head[i]][2],
-           streams[indices_stream[0]]["time_series"][indices_head[i]][3], streams[indices_stream[0]]["time_series"][indices_head[i]][4], streams[indices_stream[0]]["time_series"][indices_head[i]][5],  
-           streams[indices_stream[1]]["time_series"][indices_eye[i]][0], streams[indices_stream[1]]["time_series"][indices_eye[i]][1], 
-           streams[indices_stream[1]]["time_series"][indices_eye[i]][2], streams[indices_stream[1]]["time_series"][indices_eye[i]][3], 
-           streams[indices_stream[2]]["time_series"][i][0], streams[indices_stream[2]]["time_series"][i][1])
-      f.write(write_str)
+def writeFileWStim(streams, indices_stream, indices_head, indices_eye, filename):
+  f = open(filename, 'w')
+  for i in range(0, len(streams[indices_stream[2]]["time_stamps"])):
+    write_str = "%f %f %f %f %f %f %f %f %f %f %f 0 0 0 0 %i %i\n" % (streams[indices_stream[2]]["time_stamps"][i],
+         streams[indices_stream[0]]["time_series"][indices_head[i]][0], streams[indices_stream[0]]["time_series"][indices_head[i]][1], streams[indices_stream[0]]["time_series"][indices_head[i]][2],
+         streams[indices_stream[0]]["time_series"][indices_head[i]][3], streams[indices_stream[0]]["time_series"][indices_head[i]][4], streams[indices_stream[0]]["time_series"][indices_head[i]][5],  
+         streams[indices_stream[1]]["time_series"][indices_eye[i]][0], streams[indices_stream[1]]["time_series"][indices_eye[i]][1], 
+         streams[indices_stream[1]]["time_series"][indices_eye[i]][2], streams[indices_stream[1]]["time_series"][indices_eye[i]][3], 
+         streams[indices_stream[2]]["time_series"][i][0], streams[indices_stream[2]]["time_series"][i][1])
+    f.write(write_str)
 
-  # second case: no stimulus was presented
-  else:
-    f = open(filename, 'w')
+
+def writeFileWoStim(streams, indices_stream, indices_big, filename):
+  f = open(filename, 'w')
+
+  # case 1: head has more data points than eye
+  if indices_stream[0] == indices_stream[2]:
     for i in range(0, len(streams[indices_stream[2]]["time_stamps"])):
       write_str = "%f %f %f %f %f %f %f %f %f %f %f 0 0 0 0 -1 -1\n" % (streams[indices_stream[2]]["time_stamps"][i],
-           streams[indices_stream[0]]["time_series"][indices_head[i]][0], streams[indices_stream[0]]["time_series"][indices_head[i]][1], streams[indices_stream[0]]["time_series"][indices_head[i]][2],
-           streams[indices_stream[0]]["time_series"][indices_head[i]][3], streams[indices_stream[0]]["time_series"][indices_head[i]][4], streams[indices_stream[0]]["time_series"][indices_head[i]][5],  
-           streams[indices_stream[1]]["time_series"][indices_eye[i]][0], streams[indices_stream[1]]["time_series"][indices_eye[i]][1], 
-           streams[indices_stream[1]]["time_series"][indices_eye[i]][2], streams[indices_stream[1]]["time_series"][indices_eye[i]][3])
+           streams[indices_stream[0]]["time_series"][indices_big[i]][0], streams[indices_stream[0]]["time_series"][indices_big[i]][1], streams[indices_stream[0]]["time_series"][indices_big[i]][2],
+           streams[indices_stream[0]]["time_series"][indices_big[i]][3], streams[indices_stream[0]]["time_series"][indices_big[i]][4], streams[indices_stream[0]]["time_series"][indices_big[i]][5],  
+           streams[indices_stream[1]]["time_series"][i][0], streams[indices_stream[1]]["time_series"][i][1], 
+           streams[indices_stream[1]]["time_series"][i][2], streams[indices_stream[1]]["time_series"][i][3])
+      f.write(write_str)
+ 
+  # case 2: eye has more data points than head
+  else:
+    for i in range(0, len(streams[indices_stream[2]]["time_stamps"])):
+      write_str = "%f %f %f %f %f %f %f %f %f %f %f 0 0 0 0 -1 -1\n" % (streams[indices_stream[2]]["time_stamps"][i],
+           streams[indices_stream[0]]["time_series"][i][0], streams[indices_stream[0]]["time_series"][i][1], streams[indices_stream[0]]["time_series"][i][2],
+           streams[indices_stream[0]]["time_series"][i][3], streams[indices_stream[0]]["time_series"][i][4], streams[indices_stream[0]]["time_series"][i][5],  
+           streams[indices_stream[1]]["time_series"][indices_big[i]][0], streams[indices_stream[1]]["time_series"][indices_big[i]][1], 
+           streams[indices_stream[1]]["time_series"][indices_big[i]][2], streams[indices_stream[1]]["time_series"][indices_big[i]][3])
       f.write(write_str)
 
 
@@ -68,7 +79,8 @@ def convert_xdf_to_mugs(inFilename, outFilename, verbose):
     print "Start linking sample points..."
   # check whether a stimulus was presented
   if stimStream != -1:
-    # sync the stimulus sample points to the head sample points
+    # in order to sync the stimulus sample points to the head sample points
+    # we need both stored in numpy arrays
     stim = np.array(streams[stimStream]["time_stamps"])
     head = np.array(streams[headStream]["time_stamps"])
     
@@ -89,10 +101,27 @@ def convert_xdf_to_mugs(inFilename, outFilename, verbose):
     distances_eye, indices_eye = tree.query(stim[..., np.newaxis])
   
     # write synchronized data to mugs file
-    writeFile(streams, [headStream, eyeStream, stimStream], indices_head, indices_eye, outFilename)
+    writeFileWStim(streams, [headStream, eyeStream, stimStream], indices_head, indices_eye, outFilename)
 
   else:
-    return
+    # check which stream (head or eye) has fewer data points
+    fewerDp = [headStream, eyeStream] if len(streams[headStream]["time_stamps"]) <= len(streams[eyeStream]["time_stamps"]) else [eyeStream, headStream]
+    
+    # create the needed numpy arrays
+    small = np.array(streams[fewerDp[0]]["time_stamps"])
+    big = np.array(streams[fewerDp[1]]["time_stamps"])
+
+    # a tree optimized for nearest-neighbor lookup
+    if verbose:
+      print "Building KDTree for head and eye..."
+    tree = scipy.spatial.cKDTree(big[..., np.newaxis])
+
+    # get the distances and indices of all sample points of the smaller stream to 
+    # their nearest neighbor sample points of the bigger stream
+    distances_big, indices_big = tree.query(small[..., np.newaxis])
+
+    # write synchronized data to mugs file
+    writeFileWoStim(streams, [headStream, eyeStream, fewerDp[0]], indices_big, outFilename)
 
 
 if __name__ == '__main__':
