@@ -1,6 +1,11 @@
 <img src="doc/images/mug.png" align="right" height="150" />
 # MUGS - Mobile and Unrestrained Gazetracking Software
 
+## Introduction
+MUGS provides both, geometric as well as regression methods, for calculating the gaze vector
+of a subject and it's intersection with a planar display in a free moving scenario. It also 
+provides helpful interfaces for recording, filtering and analyzing data.
+
 ## Installation - Linux
 
 ### Install prerequisites and dependencies:
@@ -24,7 +29,7 @@ In mugs directory, type:
 mkdir build
 cd build
 cmake ..
-make -j4
+make
 sudo make install
 ```
 
@@ -35,7 +40,7 @@ cd programs/program_of_your_choice
 mkdir build
 cd build
 cmake ..
-make -j4
+make
 ```
 
 ## Contact
