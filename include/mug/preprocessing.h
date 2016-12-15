@@ -47,7 +47,7 @@ namespace mug
      * \brief Simple approach to calculates the first derivative (velocities) of a timeseries
      *        of points.
      * \param[in] points Timeseries for which the derivative should be calculated.
-     * \param[out] derivative First derivative (velocities) of the the timeseries of points.
+     * \param[out] derivative First derivative (velocities) of the timeseries of points.
      */
     inline void simpleDerivative (std::vector<Eigen::Vector2f> & points,
                            std::vector<float> & derivative)

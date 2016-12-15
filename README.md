@@ -13,7 +13,7 @@ provides helpful interfaces for recording and analyzing data.
 #### CMake, Boost, Eigen3
 
 ```bash
-sudo apt-get install cmake-curses-gui libboost-all-dev libeigen3-dev 
+sudo apt-get install cmake libboost-all-dev libeigen3-dev 
 ```
 
 #### libGp

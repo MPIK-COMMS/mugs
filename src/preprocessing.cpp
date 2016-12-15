@@ -48,18 +48,19 @@ void mug::correctPolArtifacts(std::vector<Eigen::Vector2f> & pol)
 
 Vector4f mug::meanPosAndMarkerChanges (std::vector<Sample> & s, std::vector<int> & markerChanges)
 {
-    float center_px_left, center_py_left, center_px_right, center_py_right;
+    float center_px_left = 0, center_py_left = 0, center_px_right = 0, center_py_right = 0;
     Vector4f meanPosition;
     int sampleSize = s.size();
     Vector2f currentPosition = s[0].target_pos;
     
     // iterate over samples and sum up the eye coordinates as well as fill array of 
-    // marker position changes.
+    // marker position changes. Ignore marker changes that occured during smooth persuits
     for(Samples::iterator it = s.begin(); it != s.end(); ++it)
     {
         if (it->target_pos != currentPosition)
 	{
 	    markerChanges.push_back(it - s.begin());
+	    currentPosition = it->target_pos;
 	}
         center_px_left += it->px_left;
         center_py_left += it->py_left;
