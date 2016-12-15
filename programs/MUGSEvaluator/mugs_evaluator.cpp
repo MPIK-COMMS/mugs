@@ -31,7 +31,6 @@
 namespace po = boost::program_options;
 
 #include <mug/gaze_tracker.h>
-#include <mug/eye_model_linear.h>
 #include <mug/screen_model_flat.h>
 #include <mug/eye_model_linear.h>
 #include <mug/eye_model_moore.h>

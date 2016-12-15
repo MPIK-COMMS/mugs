@@ -58,6 +58,24 @@ namespace mug
 	    derivative.push_back((*it)[0] - (*(it-1))[0]);
         }
     }
+    
+    /**
+     * \brief Remove of all marker changes that occured during smooth persuits.
+     * \param[out] marker Vector of indices of marker changes.
+     */
+    inline void removeSmoothPersuitMarker(std::vector<int> & marker)
+    {
+        for (std::vector<int>::iterator itMarker = marker.begin(); itMarker != marker.end(); )
+	{
+	    int currentIndex = *itMarker;
+	    int nextIndex = *(std::next(itMarker));
+	    if (nextIndex - currentIndex == 1) {
+	        itMarker = marker.erase(itMarker);
+	    } else {
+	        ++itMarker;
+	    }
+	}
+    }
         
     /**
      * \brief Remove all samples that are specified by the vector of indices 

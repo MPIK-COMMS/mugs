@@ -82,6 +82,9 @@ std::vector<int> mug::saccadeFilter_velocity (std::vector<Sample> & s, ModelType
     std::vector<int> markerChanges;
     Vector4f meanPos = meanPosAndMarkerChanges(s, markerChanges);
     
+    // remove all marker changes, which are corresponding to smooth persuits
+    removeSmoothPersuitMarker(markerChanges);
+    
     // Convert centered Cartesean into polar coordinates
     std::vector<Vector2f> polar_eye;
     if(mt == EYE_RIGHT)
