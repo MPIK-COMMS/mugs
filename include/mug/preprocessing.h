@@ -68,7 +68,9 @@ namespace mug
         for (std::vector<int>::iterator itMarker = marker.begin(); itMarker != marker.end(); )
 	{
 	    int currentIndex = *itMarker;
-	    int nextIndex = *(std::next(itMarker));
+	    // peek the next index
+	    std::vector<int>::iterator itNext = itMarker;
+	    int nextIndex = *(++itNext);
 	    if (nextIndex - currentIndex == 1) {
 	        itMarker = marker.erase(itMarker);
 	    } else {

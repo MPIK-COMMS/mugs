@@ -41,7 +41,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../3rdparty)
 
 link_directories(/usr/local/lib)
 
-add_executable(mugs_evaluator ${CMAKE_CURRENT_SOURCE_DIR}/mugs_filter.cpp)
+add_executable(mugs_filter ${CMAKE_CURRENT_SOURCE_DIR}/mugs_filter.cpp)
 target_link_libraries(mugs_filter
     /usr/local/lib/libmug.a
     ${LIBGP_LIBRARIES} 
