@@ -143,25 +143,26 @@ int main(int argc, char ** argv)
     }
     
     //Samples dataset = loadSamples(inputFile);
-    std::vector<int> example;
-    example.push_back(1);
-    example.push_back(2);
-    example.push_back(3);
-    example.push_back(4);
-    example.push_back(5);
-    example.push_back(6);
-    example.push_back(7);
-    example.push_back(13);
-    example.push_back(30);
-    example.push_back(46);
-    example.push_back(63);
-    example.push_back(78);
-    example.push_back(89);
-    example.push_back(100);
-    removeSmoothPersuitMarker(example);
-    std::cout << "List wihout smooth persuit marker: ";
-    for (int i = 0; i < example.size(); ++i){
-        std::cout << example[i] << " ";
+    std::vector<Eigen::Vector2f> example;
+    std::vector<float> dev;
+    example.push_back(Eigen::Vector2f(1,0));
+    example.push_back(Eigen::Vector2f(1,0));
+    example.push_back(Eigen::Vector2f(1,0));
+    example.push_back(Eigen::Vector2f(1,0));
+    example.push_back(Eigen::Vector2f(1,0));
+    example.push_back(Eigen::Vector2f(1,0));
+    example.push_back(Eigen::Vector2f(2,0));
+    example.push_back(Eigen::Vector2f(2,0));
+    example.push_back(Eigen::Vector2f(2,0));
+    example.push_back(Eigen::Vector2f(1,0));
+    example.push_back(Eigen::Vector2f(1,0));
+    example.push_back(Eigen::Vector2f(3,0));
+    example.push_back(Eigen::Vector2f(3,0));
+    example.push_back(Eigen::Vector2f(1,0));
+    simpleDerivative(example,dev);
+    std::cout << "dev: ";
+    for (int i = 0; i < dev.size(); ++i){
+        std::cout << dev[i] << " ";
     }
     std::cout << std::endl;
 }

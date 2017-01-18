@@ -53,9 +53,11 @@ namespace mug
                            std::vector<float> & derivative)
     {
         derivative.push_back(0);
-        for (std::vector<Eigen::Vector2f>::iterator it = points.begin()+1; it != points.end(); ++it)
+        for (std::vector<Eigen::Vector2f>::iterator it = points.begin(), prev=points.end(); it != points.end();prev=it, ++it)
         {
-	    derivative.push_back((*it)[0] - (*(it-1))[0]);
+	    // skip first
+	    if(it == points.begin()){continue;}
+	    derivative.push_back((*it)[0] - (*(prev))[0]);
         }
     }
     
