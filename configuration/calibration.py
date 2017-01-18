@@ -309,6 +309,9 @@ def configure():
     # Create a pygame window.
     window = pygame.display.set_mode((width, height), pygame.FULLSCREEN, 32)
 
+    # Hide the mouse
+    pygame.mouse.set_visible(False)
+
     # write message to the window
     window.fill(WHITE)
     font = pygame.font.SysFont("monospace", height/20)
