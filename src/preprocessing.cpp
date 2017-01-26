@@ -26,21 +26,24 @@
 #include <mug/sample.h>
 #include <mug/eye_model.h>
 
+#include "persistence1d.hpp"
+
 using namespace Eigen;
 using namespace mug;
 
-void mug::correctPolArtifacts(std::vector<Eigen::Vector2f> & pol)
+void mug::correctPolArtifacts(std::vector<float> & theta)
 {
     // threshold to decide whether the current jump is a polar artifact
     float threshold = 2 * M_PI - 0.15;
-    for (std::vector<Eigen::Vector2f>::iterator it = pol.begin()+1; it != pol.end(); ++it)
+    for (std::vector<float>::iterator it = theta.begin(), prev = theta.end(); it != theta.end(); prev=it, ++it)
     {
-        float velo = std::abs((*it)[0] - (*(it-1))[0]);
+        if (it == theta.begin()){continue;}
+        float velo = std::abs(*(it) - *(prev));
 	if (velo >= threshold) {
-	    if ((*it)[0] > 0){
-	        (*it)[0] -= 2 * M_PI;
+	    if (*(it) > 0){
+	        *(it) -= 2 * M_PI;
 	    } else {
-	        (*it)[0] += 2 * M_PI;
+	        *(it) += 2 * M_PI;
 	    }
 	}
     }
@@ -76,7 +79,7 @@ Vector4f mug::meanPosAndMarkerChanges (std::vector<Sample> & s, std::vector<int>
     return meanPosition;
 }
 
-std::vector<int> mug::saccadeFilter_velocity (std::vector<Sample> & s, ModelType mt, bool remove)
+std::vector<Eigen::Vector2i> mug::onsetFilter_velocity (std::vector<Sample> & s, ModelType mt, int samplerate, bool remove)
 {
     // Get mean eye positions and points of changes of the marker position.
     std::vector<int> markerChanges;
@@ -86,27 +89,74 @@ std::vector<int> mug::saccadeFilter_velocity (std::vector<Sample> & s, ModelType
     removeSmoothPersuitMarker(markerChanges);
     
     // Convert centered Cartesean into polar coordinates
-    std::vector<Vector2f> polar_eye;
+    std::vector<float> theta, r;
     if(mt == EYE_RIGHT)
     {
         for(Samples::iterator it = s.begin(); it != s.end(); ++it)
         {
-            polar_eye.push_back(cart2pol(it->px_right - meanPos[2], it->py_right - meanPos[3]));
+	    Vector2f polar = cart2pol(it->px_right - meanPos[2], it->py_right - meanPos[3]);
+            theta.push_back(polar[0]);
+	    r.push_back(polar[1]);
         }
     }else{
         for(Samples::iterator it = s.begin(); it != s.end(); ++it)
         {
-            polar_eye.push_back(cart2pol(it->px_left - meanPos[0], it->py_left - meanPos[1]));
+            Vector2f polar = cart2pol(it->px_left - meanPos[2], it->py_left - meanPos[3]);
+            theta.push_back(polar[0]);
+	    r.push_back(polar[1]);
         }
     }
     
     // remove artifacts caused by conversion into polar coordinates
-    correctPolArtifacts(polar_eye);
+    correctPolArtifacts(theta);
     
     // calculate first derivative of theta
     std::vector<float> derivative;
-    simpleDerivative(polar_eye, derivative);
+    simpleDerivative(theta, derivative);
     
-    //TODO finish filter method
-    return markerChanges; //this is just a auxiliary return statement! Needs to be changed in the final version
+    // find local extrema in derivative of theta
+    std::vector<int> extrema_theta;
+    p1d::Persistence1D p;
+    p.RunPersistence(derivative);
+    p.GetExtremaIndices(extrema_theta, extrema_theta, 0.5);
+    
+    // find local extrema in r
+    std::vector<int> extrema_r;
+    p.RunPersistence(r);
+    p.GetExtremaIndices(extrema_r, extrema_r, 0.5);
+    
+    // sort the extrema indices
+    std::sort(extrema_theta.begin(), extrema_theta.end());
+    std::sort(extrema_r.begin(), extrema_r.end());
+    
+    // compute the areas that should be removed
+    std::vector<Eigen::Vector2i> removableAreas;
+    for(std::vector<int>::iterator itMarker = markerChanges.begin(); itMarker != markerChanges.end(); ++itMarker)
+    {
+        std::vector<int>::iterator theta_peak = std::upper_bound(extrema_theta.begin(), extrema_theta.end(), *itMarker);
+	std::vector<int>::iterator r_peak = std::upper_bound(extrema_r.begin(), extrema_r.end(), *itMarker);
+	
+	// check whether r_peak and theta_peak are not to far away
+	Eigen::Vector2i area;
+	if (*theta_peak - *r_peak > samplerate/10)
+	{
+	    area[0] = *itMarker;
+	    area[1] = *theta_peak + (int)std::ceil(samplerate/10);
+	    removableAreas.push_back(area);
+	}
+	else
+	{
+	    area[0] = *itMarker;
+	    area[1] = *r_peak + (int)std::ceil(samplerate/10);
+	    removableAreas.push_back(area);
+	}
+    }
+    
+    // remove all data points that occure between target and fixation onset
+    if (remove)
+    {
+      removeSamples(s, removableAreas);
+    }
+    
+    return removableAreas;
 }

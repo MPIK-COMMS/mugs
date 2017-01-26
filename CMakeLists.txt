@@ -20,15 +20,17 @@
 
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
-IF(DEFINED CMAKE_BUILD_TYPE)
-   SET(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of 
+if(DEFINED CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of 
 build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug
 Release RelWithDebInfo MinSizeRel.")
-ELSE()
-SET(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build,
+else()
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build,
 options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release
 RelWithDebInfo MinSizeRel.")
-ENDIF()
+endif()
+
+option(BUILD_TESTS "Build tests" OFF)
 
 # CMake modules/macros are in a subfolder
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
@@ -75,3 +77,11 @@ install(TARGETS mug
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
     )
+    
+#########################################################
+# GTest
+#########################################################
+if(BUILD_TESTS)
+  add_subdirectory(tests)
+endif()
+  

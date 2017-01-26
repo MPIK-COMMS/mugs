@@ -49,15 +49,16 @@ namespace mug
      * \param[in] points Timeseries for which the derivative should be calculated.
      * \param[out] derivative First derivative (velocities) of the timeseries of points.
      */
-    inline void simpleDerivative (std::vector<Eigen::Vector2f> & points,
-                           std::vector<float> & derivative)
+    template<typename T>
+    inline void simpleDerivative (std::vector<T> & points,
+                           std::vector<T> & derivative)
     {
         derivative.push_back(0);
-        for (std::vector<Eigen::Vector2f>::iterator it = points.begin(), prev=points.end(); it != points.end();prev=it, ++it)
+        for (typename std::vector<T>::iterator it = points.begin(), prev=points.end(); it != points.end();prev=it, ++it)
         {
 	    // skip first
 	    if(it == points.begin()){continue;}
-	    derivative.push_back((*it)[0] - (*(prev))[0]);
+	    derivative.push_back(*(it) - *(prev));
         }
     }
     
@@ -88,21 +89,21 @@ namespace mug
      * \param[in] removableAreas Vector of indices, that specifies which 
      *            samples should be removed.
      */
-    inline void removeSamples (std::vector<Sample> & s, std::vector<int[2]> removableAreas)
+    inline void removeSamples (std::vector<Sample> & s, std::vector<Eigen::Vector2i> removableAreas)
     {
-        for (std::vector<int[2]>::iterator it = removableAreas.begin(); it != removableAreas.end(); ++it)
+        for (std::vector<Eigen::Vector2i>::iterator it = removableAreas.begin(); it != removableAreas.end(); ++it)
         {
-            s.erase(s.begin() + *it[0], s.begin() + *it[1]);
+            s.erase(s.begin() + (*it)[0], s.begin() + (*it)[1]);
         }
     }
     
     /**
      * \brief This function corrects Polar coordinates of the eye for artifacts, which occure 
      *        due to the conversion of Euclidean coordinates into Polar cordinates.
-     * \param[out] pol Vector of Eigen::Vector2f that stores the Polar coordinates 
+     * \param[out] theta Vector of float that stores the theta value of polar coordinates 
      *             of the eye.
      */
-    void correctPolArtifacts (std::vector<Eigen::Vector2f> & pol);
+    void correctPolArtifacts (std::vector<float> & theta);
 
     /**
      * \brief Calculates the mean position of both eyes. Additionally,
@@ -114,15 +115,16 @@ namespace mug
     Eigen::Vector4f meanPosAndMarkerChanges (std::vector<Sample> & s, std::vector<int> & makerChanges);
     
     /**
-     * \brief Filter that identifies sample points in a Samples object, which belong to a saccade.
-     *        The filtering is done by a velocity based approach.
+     * \brief Filter that identifies sample points, which are recorded before the subject actually look at 
+     *        the target (remove fixation onset). The filtering is done by a velocity based approach.
      * \param[out] s Samples object that stores all samples.
      * \param[in] mt ModelType to specify, which eye should be used to filter the samples.
-     * \param[in] remove Boolean value. Set to true to remove sample points that
-     *            are identified to be saccadic.
-     * \return Vector of indices, which belong to saccadic sample points.
+     * \param[in] samplerate Integer that indicates the samplerate for the used sample object.
+     * \param[in] remove If set to true all data points that occure betwenn target and fixation onset will be 
+     *                   removed.
+     * \return Vector of pairs of indices, which mark areas of data points that occured befor fixation onset.
      */
-    std::vector<int> saccadeFilter_velocity (std::vector<Sample> & s, ModelType mt, bool remove);
+    std::vector<Eigen::Vector2i> onsetFilter_velocity (std::vector<Sample> & s, ModelType mt, int samplerate, bool remove);
 }
 
 #endif
