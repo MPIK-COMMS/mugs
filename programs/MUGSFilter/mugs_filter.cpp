@@ -147,7 +147,7 @@ int main(int argc, char ** argv)
 	return 1;
     }
     
-    Samples dataset = loadSamples(inputFile);
-    std::vector<int[2]> beforeFixOnset = onsetFilter_velocity(dataset, mt, samplerate, true);
+    Samples dataset = loadSamples(inputFile, false);
+    std::vector<Eigen::Vector2i> beforeFixOnset = onsetFilter_velocity(dataset, mt, samplerate, true);
     saveSamples(dataset, outputFile);
 }

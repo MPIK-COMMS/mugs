@@ -118,12 +118,12 @@ std::vector<Eigen::Vector2i> mug::onsetFilter_velocity (std::vector<Sample> & s,
     std::vector<int> extrema_theta;
     p1d::Persistence1D p;
     p.RunPersistence(derivative);
-    p.GetExtremaIndices(extrema_theta, extrema_theta, 0.5);
+    p.GetExtremaIndices(extrema_theta, extrema_theta, 0);
     
     // find local extrema in r
     std::vector<int> extrema_r;
     p.RunPersistence(r);
-    p.GetExtremaIndices(extrema_r, extrema_r, 0.5);
+    p.GetExtremaIndices(extrema_r, extrema_r, 0);
     
     // sort the extrema indices
     std::sort(extrema_theta.begin(), extrema_theta.end());

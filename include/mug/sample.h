@@ -118,9 +118,12 @@ namespace mug
      * \param[out] s \ref Sample object to store data in
      * \param[out] min Minimum of the EyeTracker data.
      * \param[out] max Maximum of the EyeTracker data.
+     * \param[in] rescaling Boolean that indicated whether the rescaling should be done.
+     *                      MUGSFilter does not need the rescaling and works better without
+     *                      using it.
      * \return True if the load was successful, False otherwise.
      */
-    inline bool loadSample(std::ifstream &file, Sample &s, float &min, float &max)
+    inline bool loadSample(std::ifstream &file, Sample &s, float &min, float &max, bool rescaling)
     {
         // dummy vars to load data files containing Eyelink predictions
         float gx_left, gx_right, gy_left, gy_right; 
@@ -134,17 +137,20 @@ namespace mug
                 >> gx_right >> gy_right
                 >> s.target_pos[0] >> s.target_pos[1])
         {
-            // Values are in ranges [PI,2*PI] and [0, PI]  
+            if (rescaling)
+	    {
+	    // Values are in ranges [PI,2*PI] and [0, PI]  
             // Shift so that values are in range [0,2*PI]
-            if (s.H_o[0] < 0)
-                s.H_o[0] += 2*M_PI;
-            s.H_o[0] -= M_PI;
-            s.H_o[0] *= -1;
-            // determine the min and max of the eye data
-	    float auxMin = std::min(s.px_left, std::min(s.py_left, std::min(s.px_right, s.py_right)));
-	    float auxMax = std::max(s.px_left, std::max(s.py_left, std::max(s.px_right, s.py_right)));
-	    if (min > auxMin) {min = auxMin;}
-	    if (max < auxMax) {max = auxMax;}
+                if (s.H_o[0] < 0)
+                    s.H_o[0] += 2*M_PI;
+                s.H_o[0] -= M_PI;
+                s.H_o[0] *= -1;
+                // determine the min and max of the eye data
+	        float auxMin = std::min(s.px_left, std::min(s.py_left, std::min(s.px_right, s.py_right)));
+	        float auxMax = std::max(s.px_left, std::max(s.py_left, std::max(s.px_right, s.py_right)));
+	        if (min > auxMin) {min = auxMin;}
+	        if (max < auxMax) {max = auxMax;}
+	    }
             return true;
         }
         else
@@ -153,11 +159,13 @@ namespace mug
 
     /** 
      * \brief Load dataset from file
-     * \param[in] filename Path and name of data file
-     * \param[in] swap Boolean value that indicate whether yaw and pitch 
+     * \param[in] filename Path and name of data file 
+     * \param[in] rescaling Boolean that indicated whether the rescaling should be done.
+     *                      MUGSFilter does not need the rescaling and works better without
+     *                      using it.
      * \return Vector of samples with one sample per line in input file.
      */
-    inline std::vector<Sample> loadSamples(const std::string &filename)
+    inline std::vector<Sample> loadSamples(const std::string &filename, bool rescaling = true)
     {
         float min = std::numeric_limits<float>::max();
 	float max = std::numeric_limits<float>::min();
@@ -170,14 +178,14 @@ namespace mug
         }
 
         Sample s;
-        while (loadSample(file, s, min, max))
+        while (loadSample(file, s, min, max, rescaling))
         {
             samples.push_back(s);
         }
         file.close();
 	
 	// rescale the eye data
-	rescaleEye(samples, min, max);
+	if (rescaling){rescaleEye(samples, min, max);}
 
         return samples;
     }
