@@ -29,24 +29,24 @@ def writeFileWStim(streams, indices_stream, indices_head, indices_eye, filename)
 def writeFileWoStim(streams, indices_stream, indices_big, filename):
   f = open(filename, 'w')
 
-  # case 1: head has more data points than eye
+  # case 1: head has less data points than eye
   if indices_stream[0] == indices_stream[2]:
-    for i in range(0, len(streams[indices_stream[2]]["time_stamps"])):
-      write_str = "%f %f %f %f %f %f %f %f %f %f %f 0 0 0 0 -1 -1\n" % (streams[indices_stream[2]]["time_stamps"][i],
-           streams[indices_stream[0]]["time_series"][indices_big[i]][0], streams[indices_stream[0]]["time_series"][indices_big[i]][1], streams[indices_stream[0]]["time_series"][indices_big[i]][2],
-           streams[indices_stream[0]]["time_series"][indices_big[i]][3], streams[indices_stream[0]]["time_series"][indices_big[i]][4], streams[indices_stream[0]]["time_series"][indices_big[i]][5],  
-           streams[indices_stream[1]]["time_series"][i][0], streams[indices_stream[1]]["time_series"][i][1], 
-           streams[indices_stream[1]]["time_series"][i][2], streams[indices_stream[1]]["time_series"][i][3])
-      f.write(write_str)
- 
-  # case 2: eye has more data points than head
-  else:
     for i in range(0, len(streams[indices_stream[2]]["time_stamps"])):
       write_str = "%f %f %f %f %f %f %f %f %f %f %f 0 0 0 0 -1 -1\n" % (streams[indices_stream[2]]["time_stamps"][i],
            streams[indices_stream[0]]["time_series"][i][0], streams[indices_stream[0]]["time_series"][i][1], streams[indices_stream[0]]["time_series"][i][2],
            streams[indices_stream[0]]["time_series"][i][3], streams[indices_stream[0]]["time_series"][i][4], streams[indices_stream[0]]["time_series"][i][5],  
            streams[indices_stream[1]]["time_series"][indices_big[i]][0], streams[indices_stream[1]]["time_series"][indices_big[i]][1], 
            streams[indices_stream[1]]["time_series"][indices_big[i]][2], streams[indices_stream[1]]["time_series"][indices_big[i]][3])
+      f.write(write_str)
+ 
+  # case 2: eye has less data points than head
+  else:
+    for i in range(0, len(streams[indices_stream[2]]["time_stamps"])):
+      write_str = "%f %f %f %f %f %f %f %f %f %f %f 0 0 0 0 -1 -1\n" % (streams[indices_stream[2]]["time_stamps"][i],
+           streams[indices_stream[0]]["time_series"][indices_big[i]][0], streams[indices_stream[0]]["time_series"][indices_big[i]][1], streams[indices_stream[0]]["time_series"][indices_big[i]][2],
+           streams[indices_stream[0]]["time_series"][indices_big[i]][3], streams[indices_stream[0]]["time_series"][indices_big[i]][4], streams[indices_stream[0]]["time_series"][indices_big[i]][5],  
+           streams[indices_stream[1]]["time_series"][i][0], streams[indices_stream[1]]["time_series"][i][1], 
+           streams[indices_stream[1]]["time_series"][i][2], streams[indices_stream[1]]["time_series"][i][3])
       f.write(write_str)
 
 

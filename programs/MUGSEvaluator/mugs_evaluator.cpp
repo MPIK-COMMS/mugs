@@ -232,6 +232,7 @@ int main(int argc, char ** argv)
 {
     // Handle command line arguments.
     bool optimizeScreen;
+    int reduceRate;
     std::string eyeModel, trainFile, testFile, outputFile, configFile, modelType;
     ModelType mt;
     try {
@@ -249,11 +250,13 @@ int main(int argc, char ** argv)
 	po::options_description config("Configuration");
 	config.add_options()
 	    ("optimize,O", po::value<bool>(&optimizeScreen)->default_value(false), 
-	     "Specify, whether or not to opimize the screen (Default: false)")
+	     "Specify, whether or not to opimize the screen")
+	    ("reduce,r", po::value<int>(&reduceRate)->default_value(1),
+	     "Set the rate by which the dataset should be reduced in order to accelerate training and testing.")
 	    ("model,m", po::value<std::string>(&eyeModel)->default_value("EyeModelGp"),
-	     "Specify the eye model used for the gaze tracker (Default: EyeModelGp). Possible values are EyeModelGp, EyeModelLinear and EyeModelMoore.")
+	     "Specify the eye model used for the gaze tracker. Possible values are EyeModelGp, EyeModelLinear and EyeModelMoore.")
 	    ("type,t", po::value<std::string>(&modelType)->default_value("EYE_LEFT"),
-	     "Specify the eye, which will be used for the regression (Default: EYE_LEFT). Possible values are EYE_LEFT, EYE_RIGHT, EYE_BOTH, PUPIL, EYE_OFFSET and HEAD_ONLY.")
+	     "Specify the eye, which will be used for the regression. Possible values are EYE_LEFT, EYE_RIGHT, EYE_BOTH, PUPIL, EYE_OFFSET and HEAD_ONLY.")
 	    ("output,o", po::value<std::string>(&outputFile)->default_value("predicted_gaze.txt"),
 	     "Output file that is used to store the predicted gaze positions.")
 	    ("train-file", po::value<std::string>(&trainFile), "Input file that contains the training data.")
@@ -364,7 +367,7 @@ int main(int argc, char ** argv)
     std::cout << "  Orientation: " << screen.getOrientation().transpose() << std::endl;
 
     // Load previously recorded calibration data
-    Samples trainSet = reduceSampleRate(4, loadSamples(trainFile));
+    Samples trainSet = reduceSampleRate(reduceRate, loadSamples(trainFile));
 
     // Create a gaze tracking object. 
     // We specify the eye model to be used and
@@ -389,7 +392,7 @@ int main(int argc, char ** argv)
 
         // Load test data
         outStream.open(outputFile.c_str());
-        Samples testSet = reduceSampleRate(4, loadSamples(testFile));
+        Samples testSet = reduceSampleRate(reduceRate, loadSamples(testFile));
 
         // Run tracker on test data
         evaluateTracker(gt, testSet, outStream);
@@ -411,7 +414,7 @@ int main(int argc, char ** argv)
 
         // Load test data
         outStream.open(outputFile.c_str());
-        Samples testSet = reduceSampleRate(4, loadSamples(testFile));
+        Samples testSet = reduceSampleRate(reduceRate, loadSamples(testFile));
 
         // Run tracker on test data
         evaluateTracker(gt, testSet, outStream);
@@ -433,7 +436,7 @@ int main(int argc, char ** argv)
 
         // Load test data
         outStream.open(outputFile.c_str());
-        Samples testSet = reduceSampleRate(4, loadSamples(testFile));
+        Samples testSet = reduceSampleRate(reduceRate, loadSamples(testFile));
 
         // Run tracker on test data
         evaluateTracker(gt, testSet, outStream);
