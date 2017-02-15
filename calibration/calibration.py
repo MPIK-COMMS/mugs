@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 
 """ Configuration script for MUGS
-This script provides the configuration procedure for MUGS. 
+This script provides a configuration procedure for MUGS. 
 After starting the script it will draw a dot on the display, 
-which movements has to be followed by the subject. Recorded 
+which movements has to be followed by the subject's eyes. Recorded 
 data is streamed to LSL and can be used to  train the 
-Gaussian process model of MUGS.
+Gaussian process model of MUGS. This is JUST a suggestion. You do not 
+have to use this calibration routine to train your model. Of cause, you
+can use any calibration routine you want to in order to generate 
+training data for MUGS.
 
 Copyright (c) 2013, 2016 Max Planck Institute for Biological Cybernetics
 All rights reserved.
@@ -44,7 +47,7 @@ import pylsl
 # Chose according to your monitor's refreshing rate
 SAMPLERATE = 60
 
-# Duration of a fixation.
+# Duration of a fixation (in msec).
 FIXATIONTIME = 2000
 
 # Movement speed of the dot.
@@ -73,7 +76,7 @@ THICKNESS = 4
 class MovingDot:
     """ Class to represent the moving dot on the screen.
     """
-    def __init__(self, x=0, y=0, dx=0, dy=0, size=10):
+    def __init__(self, x=0, y=0, dx=0, dy=0, size=SIZE):
         """ Initialize a object of MovingDot.
 
         Keyword arguments:
@@ -83,7 +86,7 @@ class MovingDot:
                (default 0)
         dy --- Movement of the dot in y direction
                (default 0)
-        size - Size of the dot in px (default 10)
+        size - Size of the dot in px (default SIZE)
         """
         self.x = x
         self.y = y
@@ -172,6 +175,8 @@ def createSeq(startX, startY, width, height):
     widthCor = gridWidth/2
     heightCor = gridHeight/2
 
+    # A two-dimensional list of the form [[(destination x, destination y), dx, dy]].
+    # In order to generate fixation targets set dx=dy=0.
     configSeq = []
 
     # start smooth persuit part of the calibration sequence
@@ -194,7 +199,21 @@ def createSeq(startX, startY, width, height):
     configSeq.append([(2*(width/8), 2*(height/8)), -SPEED, 0])
     configSeq.append([(2*(width/8), height/8), 0, -SPEED])
     configSeq.append([(width/8, height/8), -SPEED, 0])
-    configSeq.append([(width/8, 7*(height/8)), 0, SPEED])
+    configSeq.append([(width/8, 11*(height/12)), 0, SPEED])
+    configSeq.append([(11*(width/12), 11*(height/12)), SPEED, 0])
+    configSeq.append([(11*(width/12), height/12), 0, -SPEED])
+    configSeq.append([(width/12, height/12), -SPEED, 0])
+    configSeq.append([(width/12, 11*(height/12)), 0, SPEED])
+    configSeq.append([(3*(width/12), 11*(height/12)), SPEED, 0])
+    configSeq.append([(3*(width/12), 9*(height/12)), 0, -SPEED])
+    configSeq.append([(5*(width/12), 9*(height/12)), SPEED, 0])
+    configSeq.append([(5*(width/12), 7*(height/12)), 0, -SPEED])
+    configSeq.append([(7*(width/12), 7*(height/12)), SPEED, 0])
+    configSeq.append([(7*(width/12), 5*(height/12)), 0, -SPEED])
+    configSeq.append([(9*(width/12), 5*(height/12)), SPEED, 0])
+    configSeq.append([(9*(width/12), 3*(height/12)), 0, -SPEED])
+    configSeq.append([(11*(width/12), 3*(height/12)), SPEED, 0])
+    configSeq.append([(11*(width/12), height/12), 0, -SPEED])
 
     # start fixation part of the calibration sequence
     configSeq.append([(gridWidth-widthCor, gridHeight-heightCor), 0, 0])
@@ -217,6 +236,26 @@ def createSeq(startX, startY, width, height):
     configSeq.append([((gridWidth)-widthCor, (3*gridHeight)-heightCor), 0, 0])
     configSeq.append([((3*gridWidth)-widthCor, (4*gridHeight)-heightCor), 0, 0])
     configSeq.append([((5*gridWidth)-widthCor, (3*gridHeight)-heightCor), 0, 0])
+    configSeq.append([((5*gridWidth)-widthCor, (4*gridHeight)-heightCor), 0, 0])
+    configSeq.append([((gridWidth)-widthCor, (2*gridHeight)-heightCor), 0, 0])
+    configSeq.append([((5*gridWidth)-widthCor, (2*gridHeight)-heightCor), 0, 0])
+    configSeq.append([((gridWidth)-widthCor, (4*gridHeight)-heightCor), 0, 0])
+    configSeq.append([((2*gridWidth)-widthCor, (gridHeight)-heightCor), 0, 0])
+    configSeq.append([((5*gridWidth)-widthCor, (3*gridHeight)-heightCor), 0, 0])
+    configSeq.append([(gridWidth-widthCor, gridHeight-heightCor), 0, 0])
+    configSeq.append([((4*gridWidth)-widthCor, (3*gridHeight)-heightCor), 0, 0])
+    configSeq.append([((5*gridWidth)-widthCor, (gridHeight)-heightCor), 0, 0])
+    configSeq.append([((3*gridWidth)-widthCor, (3*gridHeight)-heightCor), 0, 0])
+    configSeq.append([((3*gridWidth)-widthCor, (gridHeight)-heightCor), 0, 0])
+    configSeq.append([((gridWidth)-widthCor, (3*gridHeight)-heightCor), 0, 0])
+    configSeq.append([((4*gridWidth)-widthCor, (gridHeight)-heightCor), 0, 0])
+    configSeq.append([((3*gridWidth)-widthCor, (4*gridHeight)-heightCor), 0, 0])
+    configSeq.append([((4*gridWidth)-widthCor, (4*gridHeight)-heightCor), 0, 0])
+    configSeq.append([((2*gridWidth)-widthCor, (2*gridHeight)-heightCor), 0, 0])
+    configSeq.append([((2*gridWidth)-widthCor, (3*gridHeight)-heightCor), 0, 0])
+    configSeq.append([((3*gridWidth)-widthCor, (2*gridHeight)-heightCor), 0, 0])
+    configSeq.append([((2*gridWidth)-widthCor, (4*gridHeight)-heightCor), 0, 0])
+    configSeq.append([((4*gridWidth)-widthCor, (2*gridHeight)-heightCor), 0, 0])
 
     # return calibration sequence
     return configSeq
@@ -236,7 +275,7 @@ def drawAndRecordConfigSeq(dot, lslStream, sequence, pygameWindow):
     pygameWindow - Pygame window object to visualize the 
                    Experiment.
     """
-    # Create a Clock object
+    # Create a Clock object.
     clock = pygame.time.Clock()
 
     # Display dot at start position until 
@@ -252,9 +291,9 @@ def drawAndRecordConfigSeq(dot, lslStream, sequence, pygameWindow):
             if event.type == KEYDOWN and event.key == K_RETURN:
                 eventOcc = True
 
-    # Start the calibration sequence
+    # Start the calibration sequence.
     for part in sequence:
-        # check if you have fixation or smooth persuit
+        # Check whether you have fixation or smooth persuit.
         if (part[1]==0 and part[2]==0): # fixation
             dot.x = part[0][0]
             dot.y = part[0][1]
@@ -289,7 +328,7 @@ def drawAndRecordConfigSeq(dot, lslStream, sequence, pygameWindow):
                 if dot.reachedGoal(part[0]):
                     break
  
-    # Indicate that the calibration sequence is over
+    # Indicate that the calibration sequence is over.
     afterTime = currentTime()
     while (currentTime() < afterTime+500):
         lslStream.push_sample([-100, -100], pylsl.local_clock())
@@ -298,7 +337,7 @@ def configure():
     """ This function generates the visual experiment, which can be
         used to collect configuration data for MUGS.
     """
-    # Set up pygame
+    # Set up pygame.
     pygame.init()
 
     # Get the current width and height of the screen.
@@ -309,10 +348,10 @@ def configure():
     # Create a pygame window.
     window = pygame.display.set_mode((width, height), pygame.FULLSCREEN, 32)
 
-    # Hide the mouse
+    # Hide the mouse.
     pygame.mouse.set_visible(False)
 
-    # write message to the window
+    # Write a message to the window.
     window.fill(WHITE)
     font = pygame.font.SysFont("monospace", height/20)
     font_w, font_h = font.size("Waiting for consumers...")
@@ -330,7 +369,6 @@ def configure():
     lslStream = createLSLstream()
 
     # Send data only if consumers are presented.
-    # Waits for five minutes.
     if (lslStream.wait_for_consumers(50)):
         drawAndRecordConfigSeq(dot, lslStream, configSeq, window)
     else:
