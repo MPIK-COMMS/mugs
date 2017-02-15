@@ -155,6 +155,7 @@ double evaluateTracker( const GazeTracker<EyeModelGp> &gt, Samples samples, std:
         mse = sqrt(eu*eu + ev*ev);
 
         file.precision(10);
+
         file << uv[0] << " " << uv[1] << " " << uv[2] << std::endl;
     }
 
@@ -378,6 +379,7 @@ int main(int argc, char ** argv)
         GazeTracker<EyeModelGp> gt(screen, mt);
 	// Calibrate gaze tracker using loaded data
         std::cout << "\nCalibrating gaze tracker using " << trainSet.size() << " data samples..." << std::endl;
+
         gt.calibrate(trainSet);
         std::cout << "\nCalibration completed successfully" << std::endl;
 
@@ -386,6 +388,7 @@ int main(int argc, char ** argv)
         // 
    
         std::cout << "\nEvaluating POR prediction on training data..." << std::endl;
+
         evaluateTracker(gt, trainSet);
 
         std::cout << "\nEvalutating POR prediction on test data..." << std::endl;

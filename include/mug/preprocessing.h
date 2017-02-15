@@ -104,6 +104,15 @@ namespace mug
      *             of the eye.
      */
     void correctPolArtifacts (std::vector<float> & theta);
+    
+    /**
+     * \brief Finds the indices of local extrema within a one-dimensional vector.
+     * \param[in] data One-dimensional vector of function values.
+     * \param[in] order Number of neigbors that have to be smaller or greater
+     *                  on both sides of a value in order to be marked as an extrema.
+     * \param[out] extrema Vector of indices of local extrema.
+     */
+    void getLocalExtrema (std::vector<float> & data, int order, std::vector<int> & extrema);
 
     /**
      * \brief Calculates the mean position of both eyes. Additionally,

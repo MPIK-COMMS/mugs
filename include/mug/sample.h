@@ -136,7 +136,7 @@ namespace mug
                 >> gx_left >> gy_left
                 >> gx_right >> gy_right
                 >> s.target_pos[0] >> s.target_pos[1])
-        {
+        { 
             if (rescaling)
 	    {
 	    // Values are in ranges [PI,2*PI] and [0, PI]  

@@ -15,9 +15,11 @@ def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
 
 
 def writeFileWStim(streams, indices_stream, indices_head, indices_eye, filename):
+  # number to correct timestamps
+  firstTimestamp = int(streams[indices_stream[2]]["time_stamps"][0] * 1000)
   f = open(filename, 'w')
   for i in range(0, len(streams[indices_stream[2]]["time_stamps"])):
-    write_str = "%f %f %f %f %f %f %f %f %f %f %f 0 0 0 0 %i %i\n" % (streams[indices_stream[2]]["time_stamps"][i],
+    write_str = "%i %f %f %f %f %f %f %f %f %f %f 0 0 0 0 %i %i\n" % (int(streams[indices_stream[2]]["time_stamps"][i] * 1000) - firstTimestamp,
          streams[indices_stream[0]]["time_series"][indices_head[i]][0], streams[indices_stream[0]]["time_series"][indices_head[i]][1], streams[indices_stream[0]]["time_series"][indices_head[i]][2],
          streams[indices_stream[0]]["time_series"][indices_head[i]][3], streams[indices_stream[0]]["time_series"][indices_head[i]][4], streams[indices_stream[0]]["time_series"][indices_head[i]][5],  
          streams[indices_stream[1]]["time_series"][indices_eye[i]][0], streams[indices_stream[1]]["time_series"][indices_eye[i]][1], 
@@ -27,12 +29,14 @@ def writeFileWStim(streams, indices_stream, indices_head, indices_eye, filename)
 
 
 def writeFileWoStim(streams, indices_stream, indices_big, filename):
+  # number to correct timestamps
+  firstTimestamp = int(streams[indices_stream[2]]["time_stamps"][0] * 1000)
   f = open(filename, 'w')
 
   # case 1: head has less data points than eye
   if indices_stream[0] == indices_stream[2]:
     for i in range(0, len(streams[indices_stream[2]]["time_stamps"])):
-      write_str = "%f %f %f %f %f %f %f %f %f %f %f 0 0 0 0 -1 -1\n" % (streams[indices_stream[2]]["time_stamps"][i],
+      write_str = "%i %f %f %f %f %f %f %f %f %f %f 0 0 0 0 -1 -1\n" % (int(streams[indices_stream[2]]["time_stamps"][i] * 1000) - firstTimestamp,
            streams[indices_stream[0]]["time_series"][i][0], streams[indices_stream[0]]["time_series"][i][1], streams[indices_stream[0]]["time_series"][i][2],
            streams[indices_stream[0]]["time_series"][i][3], streams[indices_stream[0]]["time_series"][i][4], streams[indices_stream[0]]["time_series"][i][5],  
            streams[indices_stream[1]]["time_series"][indices_big[i]][0], streams[indices_stream[1]]["time_series"][indices_big[i]][1], 
@@ -42,7 +46,7 @@ def writeFileWoStim(streams, indices_stream, indices_big, filename):
   # case 2: eye has less data points than head
   else:
     for i in range(0, len(streams[indices_stream[2]]["time_stamps"])):
-      write_str = "%f %f %f %f %f %f %f %f %f %f %f 0 0 0 0 -1 -1\n" % (streams[indices_stream[2]]["time_stamps"][i],
+      write_str = "%i %f %f %f %f %f %f %f %f %f %f 0 0 0 0 -1 -1\n" % (int(streams[indices_stream[2]]["time_stamps"][i] * 1000) - firstTimestamp,
            streams[indices_stream[0]]["time_series"][indices_big[i]][0], streams[indices_stream[0]]["time_series"][indices_big[i]][1], streams[indices_stream[0]]["time_series"][indices_big[i]][2],
            streams[indices_stream[0]]["time_series"][indices_big[i]][3], streams[indices_stream[0]]["time_series"][indices_big[i]][4], streams[indices_stream[0]]["time_series"][indices_big[i]][5],  
            streams[indices_stream[1]]["time_series"][i][0], streams[indices_stream[1]]["time_series"][i][1], 
