@@ -49,11 +49,6 @@ void mug::correctPolArtifacts(std::vector<float> & theta)
     }
 }
 
-void getLocalExtrema(std::vector<float> & data, int order, std::vector<int> & extrema)
-{
-
-}
-
 Vector4f mug::meanPosAndMarkerChanges (std::vector<Sample> & s, std::vector<int> & markerChanges)
 {
     float center_px_left = 0, center_py_left = 0, center_px_right = 0, center_py_right = 0;

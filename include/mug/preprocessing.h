@@ -22,6 +22,7 @@
 #define PREPROCESSING_H
 
 #include <vector>
+#include <algorithm>
 #include <cmath>
 #include <Eigen/Dense>
 #include <mug/eye_model.h>
@@ -98,21 +99,61 @@ namespace mug
     }
     
     /**
+     * \brief Checks for a given index whether this point is a extrema in the neighborhood 
+     *        specified by order.
+     * \param[in] data One-dimensional vector of floats representing function values.
+     * \param[in] index Index of the value that is considered in this function call.
+     * \param[in] order Range of the neighborhood for local extrema search.
+     * \return True if the data point is a local extrema, false otherwise.
+     */
+    template<typename T>
+    inline bool isLocalExtrema (std::vector<T> const& data, int index, int order)
+    {
+        // Case 1: Data point is at the beginning of the vector
+        if ((data.begin()+index) - data.begin() < 10) {
+	    typename std::vector<T>::const_iterator max = std::max_element(data.begin(), data.begin() + index + order);
+	    typename std::vector<T>::const_iterator min = std::min_element(data.begin(), data.begin() + index + order);
+	    return ((max - data.begin() == index) || (min - data.begin() == index));
+	}
+	// Case 2: Data point is at the end of the vector
+	else if (data.end() - (data.begin()+index) < 10) {
+	    typename std::vector<T>::const_iterator max = std::max_element(data.begin() + index - order, data.end());
+	    typename std::vector<T>::const_iterator min = std::min_element(data.begin() + index - order, data.end());
+	    return ((max - data.begin() == index) || (min - data.begin() == index));
+	}
+	// Case 3: Data point is in the middle of the vector
+	else {
+	    typename std::vector<T>::const_iterator max = std::max_element(data.begin() + index - order, data.begin()+ index + order);
+	    typename std::vector<T>::const_iterator min = std::min_element(data.begin() + index - order, data.begin()+ index + order);
+	    return ((max - data.begin() == index) || (min - data.begin() == index));
+	}
+    }
+    
+    /**
+     * \brief Finds the indices of local extrema within a one-dimensional vector.
+     * \param[in] data One-dimensional vector of function values.
+     * \param[in] order Number of neighbors that have to be smaller or greater
+     *                  on both sides of a value in order to be marked as an extrema.
+     * \param[out] extrema Vector of indices of local extrema.
+     */
+    inline void getLocalExtrema (std::vector<float> const& data, int order, std::vector<int> & extrema)
+    {
+        for(std::vector<float>::const_iterator it = data.begin(); it != data.end(); ++it)
+        {
+            int currentIndex = it - data.begin();
+            if(isLocalExtrema(data, currentIndex, order)) {
+	        extrema.push_back(currentIndex);
+	    }
+        }
+    }
+    
+    /**
      * \brief This function corrects Polar coordinates of the eye for artifacts, which occure 
      *        due to the conversion of Euclidean coordinates into Polar cordinates.
      * \param[out] theta Vector of float that stores the theta value of polar coordinates 
      *             of the eye.
      */
     void correctPolArtifacts (std::vector<float> & theta);
-    
-    /**
-     * \brief Finds the indices of local extrema within a one-dimensional vector.
-     * \param[in] data One-dimensional vector of function values.
-     * \param[in] order Number of neigbors that have to be smaller or greater
-     *                  on both sides of a value in order to be marked as an extrema.
-     * \param[out] extrema Vector of indices of local extrema.
-     */
-    void getLocalExtrema (std::vector<float> & data, int order, std::vector<int> & extrema);
 
     /**
      * \brief Calculates the mean position of both eyes. Additionally,

@@ -124,3 +124,27 @@ TEST(PreprocessingTest, RemoveSamples){
     EXPECT_EQ(test_samples[i].timestamp, result_samples[i].timestamp) << "Vectors test_samples and result_samples differ at index " << i;
   }
 }
+
+TEST(PreprocessingTest, GetLocalExtrema){
+  std::vector<float> testData;
+  std::vector<int> extrema_order1;
+  std::vector<int> extrema_order3;
+  std::vector<int> results_order1;
+  std::vector<int> results_order3;
+  
+  // fill the data vector
+  testData.push_back(1.5); testData.push_back(1.5); testData.push_back(1.5); testData.push_back(3.5);
+  testData.push_back(3.3); testData.push_back(3.5); testData.push_back(3.8); testData.push_back(3.3);
+  testData.push_back(1.3); testData.push_back(-0.4); testData.push_back(1.3); testData.push_back(1.3);
+  
+  // create the expected results 
+  extrema_order1.push_back(3); extrema_order1.push_back(6); extrema_order1.push_back(9);
+  extrema_order3.push_back(6); extrema_order3.push_back(9);
+  
+  // calculate extrema 
+  mug::getLocalExtrema(testData, 1, results_order1);
+  mug::getLocalExtrema(testData, 3, results_order3);
+  
+  ASSERT_THAT(extrema_order1, ::testing::ContainerEq(results_order1));
+  ASSERT_THAT(extrema_order3, ::testing::ContainerEq(results_order3));
+}
