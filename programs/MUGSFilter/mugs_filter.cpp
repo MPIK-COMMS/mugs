@@ -51,7 +51,7 @@ int main(int argc, char ** argv)
 {
     // Handle command line arguments.
     std::string configFile, inputFile, outputFile, modelType;
-    int samplerate;
+    int samplerate, order;
     ModelType mt;
     try {
         // Declare a group of options that will be allowed
@@ -68,9 +68,11 @@ int main(int argc, char ** argv)
 	po::options_description config("Configuration");
 	config.add_options()
 	    ("type,t", po::value<std::string>(&modelType)->default_value("EYE_LEFT"),
-	     "Specify the eye, which will be used for filtering (Default: EYE_LEFT). Possible values are EYE_LEFT, EYE_RIGHT, EYE_BOTH, PUPIL, EYE_OFFSET and HEAD_ONLY.")
+	     "Specify the eye, which will be used for filtering. Possible values are EYE_LEFT, EYE_RIGHT, EYE_BOTH, PUPIL, EYE_OFFSET and HEAD_ONLY.")
 	    ("samplerate,s", po::value<int>(&samplerate)->default_value(60),
 	     "Set this to the samplerate that will be used by the filtering algorithms. Make sure that this matchs the samplerate of your recordings.")
+	    ("order,d", po::value<int>(&order)->default_value(10),
+	     "Size of the local neighborhood during the local extrema search.")
 	    ("input,i", po::value<std::string>(&inputFile)->default_value(("samples.mugs")),
 	     "Input file, which contains the dataset that should be filtered.")
 	    ("output,o", po::value<std::string>(&outputFile)->default_value("filtered_samples.mugs"),
@@ -148,6 +150,6 @@ int main(int argc, char ** argv)
     }
     
     Samples dataset = loadSamples(inputFile, false);
-    std::vector<Eigen::Vector2i> beforeFixOnset = onsetFilter_velocity(dataset, mt, samplerate, true);
+    std::vector<Eigen::Vector2i> beforeFixOnset = onsetFilter_velocity(dataset, mt, samplerate, order, true);
     saveSamples(dataset, outputFile);
 }

@@ -109,24 +109,35 @@ namespace mug
     template<typename T>
     inline bool isLocalExtrema (std::vector<T> const& data, int index, int order)
     {
-        // Case 1: Data point is at the beginning of the vector
-        if ((data.begin()+index) - data.begin() < 10) {
-	    typename std::vector<T>::const_iterator max = std::max_element(data.begin(), data.begin() + index + order);
-	    typename std::vector<T>::const_iterator min = std::min_element(data.begin(), data.begin() + index + order);
-	    return ((max - data.begin() == index) || (min - data.begin() == index));
+        // auxiliary variables
+        typedef typename std::vector<T>::const_iterator extremaIt;
+	bool min = true;
+	bool max = true;
+	
+	// Set the begin point for the local neighborhood.
+	// If the potential local extrema is at the beginning of the vector (less than order positions away),
+	// the begin iterator is set to data.begin(). Otherwise, it is set to data.begin()+index-order.
+	extremaIt begin = ((data.begin()+index) - data.begin() < order) ? data.begin() : data.begin()+index-order;
+	
+	// Set the end pointer for the local neighborhood.
+	// If the potential local extrema is at the end of the vector (less than order positions away),
+	// the end iterator is set to data.end(). Otherwise, it is set to data.begin()+index+order+1.
+	extremaIt end = (data.end() - (data.begin()+index) < order) ? data.end() : data.begin()+index+order+1;
+	
+        for(extremaIt it = begin; it != end; ++it)
+	{
+	    // Skip the entry that we are currently considering as the potential local extrema
+	    if (it != (data.begin()+index)) {
+	        // Check whether the current value is greater, smaller, or equal to the potential local extrema
+	        if(*it >= *(data.begin()+index)) {
+	            max = false;
+	        }
+	        if(*it <= *(data.begin()+index)) {
+	            min = false;
+		}
+	    }
 	}
-	// Case 2: Data point is at the end of the vector
-	else if (data.end() - (data.begin()+index) < 10) {
-	    typename std::vector<T>::const_iterator max = std::max_element(data.begin() + index - order, data.end());
-	    typename std::vector<T>::const_iterator min = std::min_element(data.begin() + index - order, data.end());
-	    return ((max - data.begin() == index) || (min - data.begin() == index));
-	}
-	// Case 3: Data point is in the middle of the vector
-	else {
-	    typename std::vector<T>::const_iterator max = std::max_element(data.begin() + index - order, data.begin()+ index + order);
-	    typename std::vector<T>::const_iterator min = std::min_element(data.begin() + index - order, data.begin()+ index + order);
-	    return ((max - data.begin() == index) || (min - data.begin() == index));
-	}
+	return (max || min);
     }
     
     /**
@@ -170,11 +181,12 @@ namespace mug
      * \param[out] s Samples object that stores all samples.
      * \param[in] mt ModelType to specify, which eye should be used to filter the samples.
      * \param[in] samplerate Integer that indicates the samplerate for the used sample object.
+     * \param[in] order Size of the local neighborhood during local extrema search.
      * \param[in] remove If set to true all data points that occure betwenn target and fixation onset will be 
      *                   removed.
      * \return Vector of pairs of indices, which mark areas of data points that occured befor fixation onset.
      */
-    std::vector<Eigen::Vector2i> onsetFilter_velocity (std::vector<Sample> & s, ModelType mt, int samplerate, bool remove);
+    std::vector<Eigen::Vector2i> onsetFilter_velocity (std::vector<Sample> & s, ModelType mt, int samplerate, int order, bool remove);
 }
 
 #endif

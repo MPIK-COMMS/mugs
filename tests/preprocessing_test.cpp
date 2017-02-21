@@ -66,7 +66,7 @@ TEST(PreprocessingTest, SimpleDerivative){
   
   mug::simpleDerivative(testData_float, testDeri_float);
   
-  ASSERT_THAT(testDeri_int, ::testing::ContainerEq(testResult_int));
+  EXPECT_THAT(testResult_int, ::testing::ContainerEq(testDeri_int));
   for(unsigned int i = 0; i < testDeri_float.size(); ++i)
   {
     EXPECT_THAT(testDeri_float[i], ::testing::FloatEq(testResult_float[i]));
@@ -88,7 +88,7 @@ TEST(PreprocessingTest, RemoveSmoothPersuitMarker){
   
   mug::removeSmoothPersuitMarker(markers);
   
-  ASSERT_THAT(markers, ::testing::ContainerEq(result));
+  EXPECT_THAT(result, ::testing::ContainerEq(markers));
 }
 
 TEST(PreprocessingTest, RemoveSamples){
@@ -138,13 +138,13 @@ TEST(PreprocessingTest, GetLocalExtrema){
   testData.push_back(1.3); testData.push_back(-0.4); testData.push_back(1.3); testData.push_back(1.3);
   
   // create the expected results 
-  extrema_order1.push_back(3); extrema_order1.push_back(6); extrema_order1.push_back(9);
+  extrema_order1.push_back(3); extrema_order1.push_back(4); extrema_order1.push_back(6); extrema_order1.push_back(9);
   extrema_order3.push_back(6); extrema_order3.push_back(9);
   
   // calculate extrema 
   mug::getLocalExtrema(testData, 1, results_order1);
   mug::getLocalExtrema(testData, 3, results_order3);
   
-  ASSERT_THAT(extrema_order1, ::testing::ContainerEq(results_order1));
-  ASSERT_THAT(extrema_order3, ::testing::ContainerEq(results_order3));
+  EXPECT_THAT(results_order1, ::testing::ContainerEq(extrema_order1));
+  EXPECT_THAT(results_order3, ::testing::ContainerEq(extrema_order3));
 }

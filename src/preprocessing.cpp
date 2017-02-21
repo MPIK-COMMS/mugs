@@ -79,7 +79,7 @@ Vector4f mug::meanPosAndMarkerChanges (std::vector<Sample> & s, std::vector<int>
     return meanPosition;
 }
 
-std::vector<Eigen::Vector2i> mug::onsetFilter_velocity (std::vector<Sample> & s, ModelType mt, int samplerate, bool remove)
+std::vector<Eigen::Vector2i> mug::onsetFilter_velocity (std::vector<Sample> & s, ModelType mt, int samplerate, int order, bool remove)
 {
     // Get mean eye positions and points of changes of the marker position.
     std::vector<int> markerChanges;
@@ -116,14 +116,11 @@ std::vector<Eigen::Vector2i> mug::onsetFilter_velocity (std::vector<Sample> & s,
     
     // find local extrema in derivative of theta
     std::vector<int> extrema_theta;
-    p1d::Persistence1D p;
-    p.RunPersistence(derivative);
-    p.GetExtremaIndices(extrema_theta, extrema_theta, 0);
+    getLocalExtrema(derivative, order, extrema_theta);
     
     // find local extrema in r
     std::vector<int> extrema_r;
-    p.RunPersistence(r);
-    p.GetExtremaIndices(extrema_r, extrema_r, 0);
+    getLocalExtrema(r, order, extrema_r);
     
     // sort the extrema indices
     std::sort(extrema_theta.begin(), extrema_theta.end());
