@@ -33,6 +33,11 @@ make
 sudo make install
 ```
 
+If you want to build the tests, Google Test is needed. The test can be build by replacing the cmake command above with
+```bash
+cmake -DBUILD_TESTS=ON ..
+```
+
 #### Build programs
 In mugs directory, type:
 ```bash
