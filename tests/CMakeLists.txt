@@ -28,6 +28,7 @@ include_directories(${GTEST_INCLUDE_DIRS})
 set(MUGS_TESTS
     all_tests.cpp
     preprocessing_test.cpp
+    sample_test.cpp
     )
     
 # create test
