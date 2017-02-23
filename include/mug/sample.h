@@ -96,19 +96,33 @@ namespace mug
     }
     
     /**
-     * \brief Scale the range of the eye data to [0,2].
+     * \brief Scale the range of the tracking data to [0,2].
      * \param[out] samples Vector containing tracking data.
-     * \param[in] min Minimum value of the eye data.
-     * \param[in] max Maximum value of the eye data.
+     * \param[in] min_eye Minimum value of the eye data.
+     * \param[in] max_eye Maximum value of the eye data.
+     * \param[in] min_o Minimum value of the head orientation data.
+     * \param[in] max_o Maximum value of the head orientation data.
+     * \param[in] min_pos Minimum value of the head position data.
+     * \param[in] max_pos Maximum value of the head position data.
      */
-    inline void rescaleEye(std::vector<Sample> &samples, const float &min, const float &max)
+    inline void rescaleData(std::vector<Sample> &samples, const float &min_eye, const float &max_eye,
+                            const float &min_o, const float &max_o,
+			    const float &min_pos, const float &max_pos)
     {
         for (std::vector<Sample>::iterator it = samples.begin(); it != samples.end(); it++)
 	{
-	    it->px_left = (2*(it->px_left - min))/(max - min);
-	    it->py_left = (2*(it->py_left - min))/(max - min);
-	    it->px_right = (2*(it->px_right - min))/(max - min);
-	    it->py_right = (2*(it->py_right - min))/(max - min);
+	    it->px_left = (2*(it->px_left - min_eye))/(max_eye - min_eye);
+	    it->py_left = (2*(it->py_left - min_eye))/(max_eye - min_eye);
+	    it->px_right = (2*(it->px_right - min_eye))/(max_eye - min_eye);
+	    it->py_right = (2*(it->py_right - min_eye))/(max_eye - min_eye);
+	    
+	    //it->H_o[0] = (2*(it->H_o[0] - min_o))/(max_o - min_o);
+	    //it->H_o[1] = (2*(it->H_o[1] - min_o))/(max_o - min_o);
+	    //it->H_o[2] = (2*(it->H_o[2] - min_o))/(max_o - min_o);
+	    
+	    //it->H_pos[0] = (2*(it->H_pos[0] - min_pos))/(max_pos - min_pos);
+	    //it->H_pos[1] = (2*(it->H_pos[1] - min_pos))/(max_pos - min_pos);
+	    //it->H_pos[2] = (2*(it->H_pos[2] - min_pos))/(max_pos - min_pos);
 	}
     }
 
@@ -123,7 +137,8 @@ namespace mug
      *                      using it.
      * \return True if the load was successful, False otherwise.
      */
-    inline bool loadSample(std::ifstream &file, Sample &s, float &min, float &max, bool rescaling)
+    inline bool loadSample(std::ifstream &file, Sample &s, float &min_eye, float &max_eye, 
+			   float &min_o, float &max_o, float &min_pos, float &max_pos, bool rescaling)
     {
         // dummy vars to load data files containing Eyelink predictions
         float gx_left, gx_right, gy_left, gy_right; 
@@ -141,15 +156,25 @@ namespace mug
 	    {
 	    // Values are in ranges [PI,2*PI] and [0, PI]  
             // Shift so that values are in range [0,2*PI]
-                if (s.H_o[0] < 0)
-                    s.H_o[0] += 2*M_PI;
-                s.H_o[0] -= M_PI;
-                s.H_o[0] *= -1;
-                // determine the min and max of the eye data
-	        float auxMin = std::min(s.px_left, std::min(s.py_left, std::min(s.px_right, s.py_right)));
-	        float auxMax = std::max(s.px_left, std::max(s.py_left, std::max(s.px_right, s.py_right)));
-	        if (min > auxMin) {min = auxMin;}
-	        if (max < auxMax) {max = auxMax;}
+            //    if (s.H_o[0] < 0)
+            //        s.H_o[0] += 2*M_PI;
+            //    s.H_o[0] -= M_PI;
+            //    s.H_o[0] *= -1;
+	      
+                // determine the min and max of the tracking data for the domains eye, head orientation and
+	        // head position
+	        float auxMin_eye = std::min(s.px_left, std::min(s.py_left, std::min(s.px_right, s.py_right)));
+	        float auxMax_eye = std::max(s.px_left, std::max(s.py_left, std::max(s.px_right, s.py_right)));
+		float auxMin_o = std::min(s.H_o[0], std::min(s.H_o[1], s.H_o[2]));
+		float auxMax_o = std::max(s.H_o[0], std::max(s.H_o[1], s.H_o[2]));
+		float auxMin_pos = std::min(s.H_pos[0], std::min(s.H_pos[1], s.H_pos[2]));
+		float auxMax_pos = std::max(s.H_pos[0], std::max(s.H_pos[1], s.H_pos[2]));
+	        if (min_eye > auxMin_eye) {min_eye = auxMin_eye;}
+	        if (max_eye < auxMax_eye) {max_eye = auxMax_eye;}
+	        if (min_o < auxMin_o) {min_o = auxMin_o;}
+	        if (max_o < auxMax_o) {max_o = auxMax_o;}
+	        if (min_pos < auxMax_pos) {min_pos = auxMax_pos;}
+	        if (max_pos < auxMax_pos) {max_pos = auxMax_pos;}
 	    }
             return true;
         }
@@ -167,8 +192,12 @@ namespace mug
      */
     inline std::vector<Sample> loadSamples(const std::string &filename, bool rescaling = true)
     {
-        float min = std::numeric_limits<float>::max();
-	float max = std::numeric_limits<float>::min();
+        float min_eye = std::numeric_limits<float>::max();
+	float min_o = std::numeric_limits<float>::max();
+	float min_pos = std::numeric_limits<float>::max();
+	float max_eye = std::numeric_limits<float>::min();
+	float max_o = std::numeric_limits<float>::min();
+	float max_pos = std::numeric_limits<float>::min();
         std::vector<Sample> samples;
         std::ifstream file(filename.c_str());
         if (! file.is_open())
@@ -178,14 +207,14 @@ namespace mug
         }
 
         Sample s;
-        while (loadSample(file, s, min, max, rescaling))
+        while (loadSample(file, s, min_eye, max_eye, min_o, max_o, min_pos, max_pos, rescaling))
         {
             samples.push_back(s);
         }
         file.close();
 	
 	// rescale the eye data
-	if (rescaling){rescaleEye(samples, min, max);}
+	if (rescaling){rescaleData(samples, min_eye, max_eye, min_o, max_o, min_pos, max_pos);}
 
         return samples;
     }
