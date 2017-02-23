@@ -37,6 +37,7 @@ import time
 import pygame
 from pygame.locals import *
 import pylsl
+import argparse
 
 
 #--------------------------------------------------
@@ -48,7 +49,7 @@ import pylsl
 SAMPLERATE = 60
 
 # Duration of a fixation (in msec).
-FIXATIONTIME = 2000
+FIXATIONTIME = 5000
 
 # Movement speed of the dot.
 SPEED = 6
@@ -67,6 +68,10 @@ SIZE = 5
 # Thickness of the rings outer line.
 # Set it to zero for a filled circle
 THICKNESS = 4
+
+# true: The calibration sequence will contain smooth persuit
+# false: The Calibration sequence will only consists of fixations
+SMOOTHPERSUIT = True
 
 
 #--------------------------------------------------
@@ -133,11 +138,48 @@ class MovingDot:
         return case()
 
 
+
+#--------------------------------------------------
+# Checker for argparse
+#--------------------------------------------------
+
+def check_samplerate(rate):
+    try:
+        irate = int(rate)
+        if irate <= 0:
+            raise argparse.ArgumentTypeError("Samplerate needs to be a positive integer (%s was given)" % rate)
+        return irate
+    except ValueError as e:
+        raise argparse.ArgumentTypeError("Samplerate needs to be a positive integer (%s was given)" % rate)
+
+
+def check_speed(speed):
+    try:
+        ispeed = int(speed)
+        if ispeed <= 0:
+            raise argparse.ArgumentTypeError("Speed needs to be a positive integer (%s was given)" % speed)
+        return ispeed
+    except ValueError as e:
+        raise argparse.ArgumentTypeError("Speed needs to be a positive integer (%s was given)" % speed)
+
+
+def check_fixation(fixation):
+    try:
+        ifixation = int(fixation)
+        if ifixation <= 0:
+            raise argparse.ArgumentTypeError("Fixation duration needs to be a positive integer (%s was given)" % fixation)
+        return ifixation
+    except ValueError as e:
+        raise argparse.ArgumentTypeError("Fixation duration needs to be a positive integer (%s was given)" % fixaton)
+
+
+
 #--------------------------------------------------
 # Functions
 #--------------------------------------------------
 
 currentTime = lambda: int(round(time.time() * 1000))
+
 
 def createLSLstream():
     """ Function to create a LSL StreamOutlet
@@ -159,6 +201,7 @@ def createLSLstream():
     streamOutlet = pylsl.StreamOutlet(info)
     return streamOutlet
 
+
 def createSeq(startX, startY, width, height):
     """ Create a tour for the dot given a certain starting
     point and the width and height of the window.
@@ -169,7 +212,6 @@ def createSeq(startX, startY, width, height):
     width -- Width of the current window.
     height - Height of the current window.
     """
-
     gridWidth = width/5
     gridHeight = height/4
     widthCor = gridWidth/2
@@ -179,41 +221,42 @@ def createSeq(startX, startY, width, height):
     # In order to generate fixation targets set dx=dy=0.
     configSeq = []
 
-    # start smooth persuit part of the calibration sequence
-    configSeq.append([(width-50, startY), SPEED, 0])
-    configSeq.append([(width-50, height/4), 0, -SPEED])
-    configSeq.append([(5*(width/8), height/4), -SPEED, 0])
-    configSeq.append([(5*(width/8), height/8), 0, -SPEED])
-    configSeq.append([(width/2, height/8), -SPEED, 0])
-    configSeq.append([(width/2, height/4), 0, SPEED])
-    configSeq.append([(width/4, height/4), -SPEED, 0])
-    configSeq.append([(width/4, 3*(height/4)), 0, SPEED])
-    configSeq.append([(3*(width/4), 3*(height/4)), SPEED, 0])
-    configSeq.append([(3*(width/4), 5*(height/8)), 0, -SPEED])
-    configSeq.append([(5*(width/8), 5*(height/8)), -SPEED, 0])
-    configSeq.append([(5*(width/8), 4*(height/8)), 0, -SPEED])
-    configSeq.append([(4*(width/8), 4*(height/8)), -SPEED, 0])
-    configSeq.append([(4*(width/8), 3*(height/8)), 0, -SPEED])
-    configSeq.append([(3*(width/8), 3*(height/8)), -SPEED, 0])
-    configSeq.append([(3*(width/8), 2*(height/8)), 0, -SPEED])
-    configSeq.append([(2*(width/8), 2*(height/8)), -SPEED, 0])
-    configSeq.append([(2*(width/8), height/8), 0, -SPEED])
-    configSeq.append([(width/8, height/8), -SPEED, 0])
-    configSeq.append([(width/8, 11*(height/12)), 0, SPEED])
-    configSeq.append([(11*(width/12), 11*(height/12)), SPEED, 0])
-    configSeq.append([(11*(width/12), height/12), 0, -SPEED])
-    configSeq.append([(width/12, height/12), -SPEED, 0])
-    configSeq.append([(width/12, 11*(height/12)), 0, SPEED])
-    configSeq.append([(3*(width/12), 11*(height/12)), SPEED, 0])
-    configSeq.append([(3*(width/12), 9*(height/12)), 0, -SPEED])
-    configSeq.append([(5*(width/12), 9*(height/12)), SPEED, 0])
-    configSeq.append([(5*(width/12), 7*(height/12)), 0, -SPEED])
-    configSeq.append([(7*(width/12), 7*(height/12)), SPEED, 0])
-    configSeq.append([(7*(width/12), 5*(height/12)), 0, -SPEED])
-    configSeq.append([(9*(width/12), 5*(height/12)), SPEED, 0])
-    configSeq.append([(9*(width/12), 3*(height/12)), 0, -SPEED])
-    configSeq.append([(11*(width/12), 3*(height/12)), SPEED, 0])
-    configSeq.append([(11*(width/12), height/12), 0, -SPEED])
+    if SMOOTHPERSUIT:
+        # start smooth persuit part of the calibration sequence
+        configSeq.append([(width-50, startY), SPEED, 0])
+        configSeq.append([(width-50, height/4), 0, -SPEED])
+        configSeq.append([(5*(width/8), height/4), -SPEED, 0])
+        configSeq.append([(5*(width/8), height/8), 0, -SPEED])
+        configSeq.append([(width/2, height/8), -SPEED, 0])
+        configSeq.append([(width/2, height/4), 0, SPEED])
+        configSeq.append([(width/4, height/4), -SPEED, 0])
+        configSeq.append([(width/4, 3*(height/4)), 0, SPEED])
+        configSeq.append([(3*(width/4), 3*(height/4)), SPEED, 0])
+        configSeq.append([(3*(width/4), 5*(height/8)), 0, -SPEED])
+        configSeq.append([(5*(width/8), 5*(height/8)), -SPEED, 0])
+        configSeq.append([(5*(width/8), 4*(height/8)), 0, -SPEED])
+        configSeq.append([(4*(width/8), 4*(height/8)), -SPEED, 0])
+        configSeq.append([(4*(width/8), 3*(height/8)), 0, -SPEED])
+        configSeq.append([(3*(width/8), 3*(height/8)), -SPEED, 0])
+        configSeq.append([(3*(width/8), 2*(height/8)), 0, -SPEED])
+        configSeq.append([(2*(width/8), 2*(height/8)), -SPEED, 0])
+        configSeq.append([(2*(width/8), height/8), 0, -SPEED])
+        configSeq.append([(width/8, height/8), -SPEED, 0])
+        configSeq.append([(width/8, 11*(height/12)), 0, SPEED])
+        configSeq.append([(11*(width/12), 11*(height/12)), SPEED, 0])
+        configSeq.append([(11*(width/12), height/12), 0, -SPEED])
+        configSeq.append([(width/12, height/12), -SPEED, 0])
+        configSeq.append([(width/12, 11*(height/12)), 0, SPEED])
+        configSeq.append([(3*(width/12), 11*(height/12)), SPEED, 0])
+        configSeq.append([(3*(width/12), 9*(height/12)), 0, -SPEED])
+        configSeq.append([(5*(width/12), 9*(height/12)), SPEED, 0])
+        configSeq.append([(5*(width/12), 7*(height/12)), 0, -SPEED])
+        configSeq.append([(7*(width/12), 7*(height/12)), SPEED, 0])
+        configSeq.append([(7*(width/12), 5*(height/12)), 0, -SPEED])
+        configSeq.append([(9*(width/12), 5*(height/12)), SPEED, 0])
+        configSeq.append([(9*(width/12), 3*(height/12)), 0, -SPEED])
+        configSeq.append([(11*(width/12), 3*(height/12)), SPEED, 0])
+        configSeq.append([(11*(width/12), height/12), 0, -SPEED])
 
     # start fixation part of the calibration sequence
     configSeq.append([(gridWidth-widthCor, gridHeight-heightCor), 0, 0])
@@ -236,6 +279,7 @@ def createSeq(startX, startY, width, height):
     configSeq.append([((gridWidth)-widthCor, (3*gridHeight)-heightCor), 0, 0])
     configSeq.append([((3*gridWidth)-widthCor, (4*gridHeight)-heightCor), 0, 0])
     configSeq.append([((5*gridWidth)-widthCor, (3*gridHeight)-heightCor), 0, 0])
+
     configSeq.append([((5*gridWidth)-widthCor, (4*gridHeight)-heightCor), 0, 0])
     configSeq.append([((gridWidth)-widthCor, (2*gridHeight)-heightCor), 0, 0])
     configSeq.append([((5*gridWidth)-widthCor, (2*gridHeight)-heightCor), 0, 0])
@@ -256,9 +300,76 @@ def createSeq(startX, startY, width, height):
     configSeq.append([((3*gridWidth)-widthCor, (2*gridHeight)-heightCor), 0, 0])
     configSeq.append([((2*gridWidth)-widthCor, (4*gridHeight)-heightCor), 0, 0])
     configSeq.append([((4*gridWidth)-widthCor, (2*gridHeight)-heightCor), 0, 0])
+    
+    # If the calibration sequences consists only of fixations, we need more fixations in
+    # the sequence
+    if not SMOOTHPERSUIT:
+        configSeq.append([((2*gridWidth)-widthCor, (2*gridHeight)-heightCor), 0, 0])
+        configSeq.append([(gridWidth-widthCor, gridHeight-heightCor), 0, 0])
+        configSeq.append([((5*gridWidth)-widthCor, (2*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((4*gridWidth)-widthCor, (4*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((3*gridWidth)-widthCor, (2*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((2*gridWidth)-widthCor, (4*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((2*gridWidth)-widthCor, (gridHeight)-heightCor), 0, 0])
+        configSeq.append([((3*gridWidth)-widthCor, (3*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((4*gridWidth)-widthCor, (3*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((5*gridWidth)-widthCor, (4*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((2*gridWidth)-widthCor, (3*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((3*gridWidth)-widthCor, (gridHeight)-heightCor), 0, 0])
+        configSeq.append([((4*gridWidth)-widthCor, (2*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((5*gridWidth)-widthCor, (gridHeight)-heightCor), 0, 0])
+        configSeq.append([((gridWidth)-widthCor, (2*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((gridWidth)-widthCor, (4*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((gridWidth)-widthCor, (3*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((3*gridWidth)-widthCor, (4*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((5*gridWidth)-widthCor, (3*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((4*gridWidth)-widthCor, (gridHeight)-heightCor), 0, 0])
+
+        configSeq.append([((2*gridWidth)-widthCor, (2*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((3*gridWidth)-widthCor, (3*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((4*gridWidth)-widthCor, (gridHeight)-heightCor), 0, 0])
+        configSeq.append([((gridWidth)-widthCor, (3*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((2*gridWidth)-widthCor, (3*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((5*gridWidth)-widthCor, (2*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((4*gridWidth)-widthCor, (4*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((3*gridWidth)-widthCor, (gridHeight)-heightCor), 0, 0])
+        configSeq.append([((5*gridWidth)-widthCor, (3*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((5*gridWidth)-widthCor, (gridHeight)-heightCor), 0, 0])
+        configSeq.append([((3*gridWidth)-widthCor, (2*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((gridWidth)-widthCor, (4*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((2*gridWidth)-widthCor, (gridHeight)-heightCor), 0, 0])
+        configSeq.append([((3*gridWidth)-widthCor, (4*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((4*gridWidth)-widthCor, (3*gridHeight)-heightCor), 0, 0])
+        configSeq.append([(gridWidth-widthCor, gridHeight-heightCor), 0, 0])
+        configSeq.append([((2*gridWidth)-widthCor, (4*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((5*gridWidth)-widthCor, (4*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((4*gridWidth)-widthCor, (2*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((gridWidth)-widthCor, (2*gridHeight)-heightCor), 0, 0])
+
+        configSeq.append([(gridWidth-widthCor, gridHeight-heightCor), 0, 0])
+        configSeq.append([((3*gridWidth)-widthCor, (3*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((2*gridWidth)-widthCor, (3*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((5*gridWidth)-widthCor, (2*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((4*gridWidth)-widthCor, (4*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((5*gridWidth)-widthCor, (gridHeight)-heightCor), 0, 0])
+        configSeq.append([((3*gridWidth)-widthCor, (2*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((gridWidth)-widthCor, (4*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((4*gridWidth)-widthCor, (gridHeight)-heightCor), 0, 0])
+        configSeq.append([((2*gridWidth)-widthCor, (4*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((2*gridWidth)-widthCor, (gridHeight)-heightCor), 0, 0])
+        configSeq.append([((4*gridWidth)-widthCor, (3*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((5*gridWidth)-widthCor, (4*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((2*gridWidth)-widthCor, (2*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((3*gridWidth)-widthCor, (gridHeight)-heightCor), 0, 0])
+        configSeq.append([((4*gridWidth)-widthCor, (2*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((gridWidth)-widthCor, (2*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((gridWidth)-widthCor, (3*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((3*gridWidth)-widthCor, (4*gridHeight)-heightCor), 0, 0])
+        configSeq.append([((5*gridWidth)-widthCor, (3*gridHeight)-heightCor), 0, 0])
 
     # return calibration sequence
     return configSeq
+
 
 def drawAndRecordConfigSeq(dot, lslStream, sequence, pygameWindow):
     """ Draws the configuration sequence on the screen and 
@@ -333,6 +444,7 @@ def drawAndRecordConfigSeq(dot, lslStream, sequence, pygameWindow):
     while (currentTime() < afterTime+500):
         lslStream.push_sample([-100, -100], pylsl.local_clock())
 
+
 def configure():
     """ This function generates the visual experiment, which can be
         used to collect configuration data for MUGS.
@@ -384,5 +496,29 @@ def configure():
     sys.exit()
 
 
+
+#--------------------------------------------------
+# Main
+#--------------------------------------------------
+
 if __name__ == '__main__':
+    # Parse command line arguments.
+    parser = argparse.ArgumentParser(description=
+                        "Filter points of predicted gaze data.")
+    parser.add_argument("-p", "--smoothpersuit", action="store_true",
+                        help="If this flag is set, the calibration sequence contains smooth persuits.")
+    parser.add_argument("-r", "--samplerate", type=check_samplerate, default=60,
+                        help="Sets the frequency that is used by this script during generating the stimulus (in Hz).")
+    parser.add_argument("-s", "--speed", type=check_speed, default=6,
+                        help="Sets the movement speed of the stimulus during smooth persuit (in Pixel per frame).")
+    parser.add_argument("-f", "--fixationtime", type=check_fixation, default=5000,
+                        help="Sets the duration of a single fixation (in msec).")
+    args = parser.parse_args()
+
+    # Overwrite global variables by the user input.
+    SMOOTHPERSUIT = args.smoothpersuit
+    SAMPLERATE = args.samplerate
+    SPEED = args.speed
+    FIXATIONTIME = args.fixationtime
+    
     configure()

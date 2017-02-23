@@ -182,9 +182,10 @@ namespace mug
      * \param[in] mt ModelType to specify, which eye should be used to filter the samples.
      * \param[in] samplerate Integer that indicates the samplerate for the used sample object.
      * \param[in] order Size of the local neighborhood during local extrema search.
-     * \param[in] remove If set to true all data points that occure betwenn target and fixation onset will be 
-     *                   removed.
-     * \return Vector of pairs of indices, which mark areas of data points that occured befor fixation onset.
+     * \param[in] remove If set to true all data points that occure betwenn target occurence and target fixation 
+     *                   will be removed.
+     * \return Vector of pairs of indices, which mark areas of data points that occured before the fixation
+     *         of the target.
      */
     std::vector<Eigen::Vector2i> onsetFilter_velocity (std::vector<Sample> & s, ModelType mt, int samplerate, int order, bool remove);
 }
