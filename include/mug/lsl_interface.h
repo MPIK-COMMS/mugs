@@ -211,8 +211,8 @@ namespace mug
     {
     public:
         std::string headStreamName;                /// Name of the stream that provides head coordinates
-	std::string eyeStreamName;                 /// Name of the stream inlet that provides eye coordinates
-	std::string stimStreamName;                /// Name of the stream inlet that provides stimulus coordinates
+	std::string eyeStreamName;                 /// Name of the stream that provides eye coordinates
+	std::string stimStreamName;                /// Name of the stream that provides stimulus coordinates
 	int h_x, h_y, h_z, h_yaw, h_pitch, h_roll; /// Channel number of head coordinates.
 	int eLeft_x, eLeft_y, eRight_x, eRight_y;  /// Channel number of eye coordinates.
 	int stim_x, stim_y;                        /// Channel number of stimulus coordinates
@@ -304,9 +304,7 @@ namespace mug
 	    this->h_yaw = 3; this->h_pitch = 4; this->h_roll = 5;
 	    this->eLeft_x = 0; this->eLeft_y = 1;
 	    this->eRight_x = 2; this->eRight_y = 3;
-	    this->stim_x = 0; this->stim_y = 1;
-	    
-	    std::cout <<"shutdown_: " << shutdown_ << std::endl;
+	    this->stim_x = 0; this->stim_y = 1;	    
 	}
 	
 	/**

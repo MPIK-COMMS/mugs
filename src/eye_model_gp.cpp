@@ -38,7 +38,7 @@ void fit_gp_thread(libgp::GaussianProcess &gp, const MatrixXd &X, const VectorXd
     for (int i=0; i<X.rows(); i++)
     {
         gp.add_pattern(VectorXd(X.row(i)).data(), y[i]);
-        if (i > 3000 && i % 100 == 0) 
+        if (i > 3000 && i % 500 == 0) 
         {
             std::cout << "fitted samples: " << i << std::endl;
         }
