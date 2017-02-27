@@ -56,7 +56,7 @@ namespace mug
 
             std::vector<Vector2f> pupils;
             std::vector<Vector2f> angles;
-            for (Samples::const_iterator s = samples.begin(); s != samples.end(); s++)
+            for (std::vector<Sample>::const_iterator s = samples.begin(); s != samples.end(); s++)
             {
                 float yaw, pitch;
                 scr.calcGazeAngles(s->target_pos, s->H_pos, s->H_o, T_trans, T_rot, yaw, pitch);
@@ -72,7 +72,7 @@ namespace mug
 
     private:
         inline double getMse(const EyeModel &m, const Vector3f & T_trans, const Vector3f &T_rot, 
-                const Samples &samples, const ScreenModel &screen) const
+                const std::vector<Sample> &samples, const ScreenModel &screen) const
         {
             if (samples.empty())
             {
@@ -95,7 +95,7 @@ namespace mug
             return mse/samples.size();
         }
 
-        Samples samples;
+        std::vector<Sample> samples;
         const ScreenModel &scr;
 	ModelType mt;
     };
@@ -113,7 +113,7 @@ namespace mug
      */
     template<typename EyeModelT> 
     inline double findEyeTransform(
-        const Samples &samples, const ScreenModel &screen,
+        const std::vector<Sample> &samples, const ScreenModel &screen,
         Vector3f &T_trans, Vector3f &T_rot, ModelType mt)
     {
         int param_dim = 6;
@@ -142,7 +142,7 @@ namespace mug
     }
     template<>
     inline double findEyeTransform<EyeModelGp>(
-        const Samples &samples, const ScreenModel &screen,
+        const std::vector<Sample> &samples, const ScreenModel &screen,
         Vector3f &T_trans, Vector3f &T_rot, ModelType mt)
     {
         int param_dim = 6;
@@ -165,7 +165,7 @@ namespace mug
 
         std::vector<Vector2f> pupils;
         std::vector<Vector2f> angles;
-        for (Samples::const_iterator s = samples.begin(); s != samples.end(); s++)
+        for (std::vector<Sample>::const_iterator s = samples.begin(); s != samples.end(); s++)
         {
             float yaw, pitch;
             scr.calcGazeAngles(s->target_pos, s->H_pos, s->H_o, T_trans, T_rot, yaw, pitch);
@@ -181,7 +181,7 @@ namespace mug
 
     template<> 
     inline double findEyeTransform<mug::EyeModelMoore>(
-        const Samples &samples, const ScreenModel &screen,
+        const std::vector<Sample> &samples, const ScreenModel &screen,
         Vector3f &T_trans, Vector3f &T_rot)
     {
         int param_dim = 3;

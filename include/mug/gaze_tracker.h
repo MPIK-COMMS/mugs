@@ -52,14 +52,14 @@ namespace mug
         inline void calibrate(const std::string &dataFile)
         {
             Samples trainingData = loadSamples(dataFile);
-            calibrate(trainingData);
+            calibrate(trainingData.samples);
         }
 
         /** 
          * \brief Calibrate eye model and head eye transform using trainingData.
          * \param[in] trainingData Vector of training samples
          */
-        inline void calibrate(const Samples &trainingData)
+        inline void calibrate(const std::vector<Sample> &trainingData)
         {
 	    if (eyeModel.getApproach() == GEOMETRIC) {
                 findEyeTransform<EyeModelT>(trainingData, screen, T_trans, T_rot, mt);

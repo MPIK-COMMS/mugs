@@ -92,8 +92,8 @@ TEST(PreprocessingTest, RemoveSmoothPersuitMarker){
 }
 
 TEST(PreprocessingTest, RemoveSamples){
-  mug::Samples test_samples;
-  mug::Samples result_samples;
+  std::vector<mug::Sample> test_samples;
+  std::vector<mug::Sample> result_samples;
   std::vector<Eigen::Vector2i> removeAreas;
 
   // create test and result data  

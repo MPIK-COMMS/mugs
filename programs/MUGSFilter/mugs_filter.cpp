@@ -70,7 +70,7 @@ int main(int argc, char ** argv)
 	    ("type,t", po::value<std::string>(&modelType)->default_value("EYE_LEFT"),
 	     "Specify the eye, which will be used for filtering. Possible values are EYE_LEFT, EYE_RIGHT, EYE_BOTH, PUPIL, EYE_OFFSET and HEAD_ONLY.")
 	    ("samplerate,s", po::value<int>(&samplerate)->default_value(60),
-	     "Set this to the samplerate that will be used by the filtering algorithms. Make sure that this matchs the samplerate of your recordings.")
+	     "Set this to the samplerate that will be used by the filtering algorithms. Make sure that this matches the samplerate of your recordings.")
 	    ("order,d", po::value<int>(&order)->default_value(10),
 	     "Size of the local neighborhood during the local extrema search.")
 	    ("input,i", po::value<std::string>(&inputFile)->default_value(("samples.mugs")),
@@ -149,7 +149,7 @@ int main(int argc, char ** argv)
 	return 1;
     }
     
-    Samples dataset = loadSamples(inputFile, false);
-    std::vector<Eigen::Vector2i> beforeFixOnset = onsetFilter_velocity(dataset, mt, samplerate, order, true);
-    saveSamples(dataset, outputFile);
+    Samples dataset = loadSamples(inputFile);
+    std::vector<Eigen::Vector2i> beforeFixOnset = onsetFilter_velocity(dataset.samples, mt, samplerate, order, true);
+    saveSamples(dataset.samples, outputFile);
 }

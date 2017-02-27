@@ -78,7 +78,7 @@ namespace mug
     private:
         ModelType mt;
         mutable int nIters;
-        std::vector<Samples> sampleList;
+        std::vector<std::vector<Sample> > sampleList;
     };
 
     /** 
@@ -96,7 +96,7 @@ namespace mug
         * \param[out] center Found screen center point (3D)
         * \param[out] orientation Found screen orientation
         */
-        void run(const std::vector<Samples> &datasets, ModelType mt, Eigen::Vector3f &center, Eigen::Vector3f &orientation)
+        void run(const std::vector<std::vector<Sample> > &datasets, ModelType mt, Eigen::Vector3f &center, Eigen::Vector3f &orientation)
         {
             const int param_dim = 6;
             column_vector params(param_dim);
@@ -221,13 +221,13 @@ namespace mug
         void calibrate(const std::vector<std::string> &dataFiles, ModelType mt)
         {
             // load data
-            std::vector<Samples> datasets;
+            std::vector<std::vector<Sample> > datasets;
             for (std::vector<std::string>::const_iterator f = dataFiles.begin(); 
                     f != dataFiles.end(); f++)
             {
                 Samples samples = loadSamples(*f);
-                samples = reduceSampleRate(16, samples);
-                datasets.push_back(samples);
+                samples.samples = reduceSampleRate(16, samples.samples);
+                datasets.push_back(samples.samples);
             }
 
             // run non-linear optimization to estimate center and orientation

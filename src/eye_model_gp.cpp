@@ -59,7 +59,7 @@ void EyeModelGp::fit(const std::vector< Vector2f >& pupilPositions, const std::v
 	return;
     }
   
-    Samples samples;
+    std::vector<Sample> samples;
     for (unsigned int i = 0; i<pupilPositions.size(); ++i)
     {
         Sample s;

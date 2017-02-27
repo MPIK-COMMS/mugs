@@ -115,13 +115,13 @@ namespace mug
 	}
 	
 	/**
-	 * \brief Calculate confidence in predicted gaze angles
+	 * \brief Calculate confidence in predicted gaze angles. Confidence 
+	 *        calculation for geometric model is not implemented, currently.
 	 * \param[in] s Sample object containing UV pupil position.
 	 * \return Confidence in predicted ganze angles.
 	 */
 	inline double getConfidence(const Sample &s) const
 	{
-	    // Currently, no confidence evaluation implemented!
 	    return 0.0;
 	};
 

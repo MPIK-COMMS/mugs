@@ -58,7 +58,7 @@ Vector4f mug::meanPosAndMarkerChanges (std::vector<Sample> & s, std::vector<int>
     
     // iterate over samples and sum up the eye coordinates as well as fill array of 
     // marker position changes. Ignore marker changes that occured during smooth persuits
-    for(Samples::iterator it = s.begin(); it != s.end(); ++it)
+    for(std::vector<Sample>::iterator it = s.begin(); it != s.end(); ++it)
     {
         if (it->target_pos != currentPosition)
 	{
@@ -92,14 +92,14 @@ std::vector<Eigen::Vector2i> mug::onsetFilter_velocity (std::vector<Sample> & s,
     std::vector<float> theta, r;
     if(mt == EYE_RIGHT)
     {
-        for(Samples::iterator it = s.begin(); it != s.end(); ++it)
+        for(std::vector<Sample>::iterator it = s.begin(); it != s.end(); ++it)
         {
 	    Vector2f polar = cart2pol(it->px_right - meanPos[2], it->py_right - meanPos[3]);
             theta.push_back(polar[0]);
 	    r.push_back(polar[1]);
         }
     }else{
-        for(Samples::iterator it = s.begin(); it != s.end(); ++it)
+        for(std::vector<Sample>::iterator it = s.begin(); it != s.end(); ++it)
         {
             Vector2f polar = cart2pol(it->px_left - meanPos[2], it->py_left - meanPos[3]);
             theta.push_back(polar[0]);

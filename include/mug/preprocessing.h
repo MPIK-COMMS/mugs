@@ -86,7 +86,7 @@ namespace mug
     /**
      * \brief Remove all samples that are specified by the vector of indices 
      *        given as a second argument.
-     * \param[out] s The samples are removed from this Samples object.
+     * \param[out] s The samples are removed from this vector of Sample objects.
      * \param[in] removableAreas Vector of indices, that specifies which 
      *            samples should be removed.
      */
@@ -170,7 +170,7 @@ namespace mug
      * \brief Calculates the mean position of both eyes. Additionally,
      *        this function determines the indices of all position changes 
      *        of the marker.
-     * \param[in] s Samples object that stores all samples.
+     * \param[in] s Vector of Sample objects that stores all samples.
      * \return Mean position of eye coordinates for both eyes.
      */
     Eigen::Vector4f meanPosAndMarkerChanges (std::vector<Sample> & s, std::vector<int> & makerChanges);
@@ -178,7 +178,7 @@ namespace mug
     /**
      * \brief Filter that identifies sample points, which are recorded before the subject actually look at 
      *        the target (remove fixation onset). The filtering is done by a velocity based approach.
-     * \param[out] s Samples object that stores all samples.
+     * \param[out] s Vector of Sample objects that stores all samples.
      * \param[in] mt ModelType to specify, which eye should be used to filter the samples.
      * \param[in] samplerate Integer that indicates the samplerate for the used sample object.
      * \param[in] order Size of the local neighborhood during local extrema search.

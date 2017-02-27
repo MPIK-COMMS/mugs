@@ -10,9 +10,9 @@ double __dist(const Eigen::Vector2f &p1, const Eigen::Vector2f &p2)
     return sqrt((p1-p2).array().square().sum());
 }
 
-Samples filterSamples(const Samples &samples)
+std::vector<Sample> filterSamples(const std::vector<Sample> &samples)
 {
-    Samples filtered;
+    std::vector<Sample> filtered;
 
     Eigen::Vector2f lastTarget;
     int lastOnset = 0;
@@ -37,10 +37,10 @@ Samples filterSamples(const Samples &samples)
 }
 
 
-Samples takeFirstNSeconds(int nsecs, const Samples &samples)
+std::vector<Sample> takeFirstNSeconds(int nsecs, const std::vector<Sample> &samples)
 {
     int timeStart = samples[0].timestamp;
-    Samples subset;
+    std::vector<Sample> subset;
     for (int i=0; i<samples.size(); i++)
     {
         if (samples[i].timestamp - timeStart < nsecs*1000)
@@ -51,10 +51,10 @@ Samples takeFirstNSeconds(int nsecs, const Samples &samples)
     return subset;
 }
 
-Samples takeAfterNSeconds(int nsecs, const Samples &samples)
+std::vector<Sample> takeAfterNSeconds(int nsecs, const std::vector<Sample> &samples)
 {
     int timeStart = samples[0].timestamp;
-    Samples subset;
+    std::vector<Sample> subset;
     for (int i=0; i<samples.size(); i++)
     {
         if (samples[i].timestamp - timeStart > nsecs*1000)
@@ -65,7 +65,7 @@ Samples takeAfterNSeconds(int nsecs, const Samples &samples)
     return subset;
 }
 
-Samples takeRandomSubset(int n, const Samples &samples)
+std::vector<Sample> takeRandomSubset(int n, const std::vector<Sample> &samples)
 {
     if (n > samples.size())
     {
@@ -78,7 +78,7 @@ Samples takeRandomSubset(int n, const Samples &samples)
     }
     std::random_shuffle(ids.begin(), ids.end());
 
-    Samples subset;
+    std::vector<Sample> subset;
     for (int i=0; i<n; i++)
     {
         subset.push_back(samples[ids[i]]);
@@ -86,9 +86,9 @@ Samples takeRandomSubset(int n, const Samples &samples)
     return subset;
 }
 
-Samples reduceSampleRate(int n, const Samples &samples)
+std::vector<Sample> reduceSampleRate(int n, const std::vector<Sample> &samples)
 {
-    Samples res;
+    std::vector<Sample> res;
     for (int i=0; i<samples.size(); i++)
     {
         if (i % n == 0)

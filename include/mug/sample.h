@@ -52,9 +52,48 @@ namespace mug
     };
 
     /** 
-     * \brief Dataset containing vector of \ref Sample objects
+     * \brief Class structure containing a vector of \ref Sample objects and
+     * minimum and maximum values for each of the three domains: head position,
+     * head orientation and eye position.
      */
-    typedef std::vector<Sample> Samples;
+    class Samples
+    {
+        public:
+	    std::vector<Sample> samples;     ///< Vector of Sample objects 
+	    float min_pos;                   ///< Minimum of the head position domain
+	    float min_o;                     ///< Minimum of the head orientation domain
+	    float min_eye;                   ///< Minimum of the eye position domain
+	    float max_pos;                   ///< Maximum of the head position domain
+	    float max_o;                     ///< Maximum of the head orientation domain
+	    float max_eye;                   ///< Maximum of the eye position domain
+	    
+	    /**
+	     * \brief Constructor
+	     */
+	    Samples ()
+	      : min_pos(std::numeric_limits<float>::max()), min_o(std::numeric_limits<float>::max()),
+	        min_eye(std::numeric_limits<float>::max()), max_pos(std::numeric_limits<float>::min()),
+	        max_o(std::numeric_limits<float>::min()), max_eye(std::numeric_limits<float>::min())
+	    {}
+	    
+	    /**
+	     * \brief Add a Samples object to the class variable samples.
+	     * \param[in] s Sample object to be added to samples;
+	     */
+	    inline void addSample (const Sample & s)
+	    {
+	        samples.push_back(s);
+	    }
+	    
+	    /**
+	     * \brief get the number of samples.
+	     * \return Size of the vector samples.
+	     */
+	    inline unsigned int getSamplesSize()
+	    {
+	        return samples.size();
+	    }
+    };
 
     /** 
      * \brief Write sample to stream
@@ -98,12 +137,12 @@ namespace mug
     /**
      * \brief Scale the range of the tracking data to [0,2].
      * \param[out] samples Vector containing tracking data.
-     * \param[in] min_eye Minimum value of the eye data.
-     * \param[in] max_eye Maximum value of the eye data.
-     * \param[in] min_o Minimum value of the head orientation data.
-     * \param[in] max_o Maximum value of the head orientation data.
-     * \param[in] min_pos Minimum value of the head position data.
-     * \param[in] max_pos Maximum value of the head position data.
+     * \param[in] min_eye Minimum value of the eye position domain.
+     * \param[in] max_eye Maximum value of the eye position domain.
+     * \param[in] min_o Minimum value of the head orientation domain.
+     * \param[in] max_o Maximum value of the head orientation domain.
+     * \param[in] min_pos Minimum value of the head position domain.
+     * \param[in] max_pos Maximum value of the head position domain.
      */
     inline void rescaleData(std::vector<Sample> &samples, const float &min_eye, const float &max_eye,
                             const float &min_o, const float &max_o,
@@ -130,15 +169,16 @@ namespace mug
      * \brief Read a sample from an input stream
      * \param[in] file Input stream
      * \param[out] s \ref Sample object to store data in
-     * \param[out] min Minimum of the EyeTracker data.
-     * \param[out] max Maximum of the EyeTracker data.
-     * \param[in] rescaling Boolean that indicated whether the rescaling should be done.
-     *                      MUGSFilter does not need the rescaling and works better without
-     *                      using it.
+     * \param[out] min_eye Minimum of the eye position domain.
+     * \param[out] max_eye Maximum of the eye position domain.
+     * \param[out] min_o Minimum of the head orientation domain.
+     * \param[out] max_o Maximum of the head orientation domain.
+     * \param[out] min_pos Minimum of the head position domain.
+     * \param[out] max_pos Maximum of the head position domain.
      * \return True if the load was successful, False otherwise.
      */
     inline bool loadSample(std::ifstream &file, Sample &s, float &min_eye, float &max_eye, 
-			   float &min_o, float &max_o, float &min_pos, float &max_pos, bool rescaling)
+			   float &min_o, float &max_o, float &min_pos, float &max_pos)
     {
         // dummy vars to load data files containing Eyelink predictions
         float gx_left, gx_right, gy_left, gy_right; 
@@ -152,31 +192,22 @@ namespace mug
                 >> gx_right >> gy_right
                 >> s.target_pos[0] >> s.target_pos[1])
         { 
-            if (rescaling)
-	    {
-	    // Values are in ranges [PI,2*PI] and [0, PI]  
-            // Shift so that values are in range [0,2*PI]
-            //    if (s.H_o[0] < 0)
-            //        s.H_o[0] += 2*M_PI;
-            //    s.H_o[0] -= M_PI;
-            //    s.H_o[0] *= -1;
-	      
-                // determine the min and max of the tracking data for the domains eye, head orientation and
-	        // head position
-	        float auxMin_eye = std::min(s.px_left, std::min(s.py_left, std::min(s.px_right, s.py_right)));
-	        float auxMax_eye = std::max(s.px_left, std::max(s.py_left, std::max(s.px_right, s.py_right)));
-		float auxMin_o = std::min(s.H_o[0], std::min(s.H_o[1], s.H_o[2]));
-		float auxMax_o = std::max(s.H_o[0], std::max(s.H_o[1], s.H_o[2]));
-		float auxMin_pos = std::min(s.H_pos[0], std::min(s.H_pos[1], s.H_pos[2]));
-		float auxMax_pos = std::max(s.H_pos[0], std::max(s.H_pos[1], s.H_pos[2]));
-	        if (min_eye > auxMin_eye) {min_eye = auxMin_eye;}
-	        if (max_eye < auxMax_eye) {max_eye = auxMax_eye;}
-	        if (min_o < auxMin_o) {min_o = auxMin_o;}
-	        if (max_o < auxMax_o) {max_o = auxMax_o;}
-	        if (min_pos < auxMax_pos) {min_pos = auxMax_pos;}
-	        if (max_pos < auxMax_pos) {max_pos = auxMax_pos;}
-	    }
-            return true;
+            // determine the min and max of the tracking data for the domains eye, head orientation and
+	    // head position
+	    float auxMin_eye = std::min(s.px_left, std::min(s.py_left, std::min(s.px_right, s.py_right)));
+	    float auxMax_eye = std::max(s.px_left, std::max(s.py_left, std::max(s.px_right, s.py_right)));
+	    float auxMin_o = std::min(s.H_o[0], std::min(s.H_o[1], s.H_o[2]));
+	    float auxMax_o = std::max(s.H_o[0], std::max(s.H_o[1], s.H_o[2]));
+	    float auxMin_pos = std::min(s.H_pos[0], std::min(s.H_pos[1], s.H_pos[2]));
+	    float auxMax_pos = std::max(s.H_pos[0], std::max(s.H_pos[1], s.H_pos[2]));
+	    if (min_eye > auxMin_eye) {min_eye = auxMin_eye;}
+	    if (max_eye < auxMax_eye) {max_eye = auxMax_eye;}
+	    if (min_o < auxMin_o) {min_o = auxMin_o;}
+	    if (max_o < auxMax_o) {max_o = auxMax_o;}
+	    if (min_pos < auxMax_pos) {min_pos = auxMax_pos;}
+	    if (max_pos < auxMax_pos) {max_pos = auxMax_pos;}
+
+	    return true;
         }
         else
             return false;
@@ -185,20 +216,11 @@ namespace mug
     /** 
      * \brief Load dataset from file
      * \param[in] filename Path and name of data file 
-     * \param[in] rescaling Boolean that indicated whether the rescaling should be done.
-     *                      MUGSFilter does not need the rescaling and works better without
-     *                      using it.
      * \return Vector of samples with one sample per line in input file.
      */
-    inline std::vector<Sample> loadSamples(const std::string &filename, bool rescaling = true)
+    inline Samples loadSamples(const std::string &filename)
     {
-        float min_eye = std::numeric_limits<float>::max();
-	float min_o = std::numeric_limits<float>::max();
-	float min_pos = std::numeric_limits<float>::max();
-	float max_eye = std::numeric_limits<float>::min();
-	float max_o = std::numeric_limits<float>::min();
-	float max_pos = std::numeric_limits<float>::min();
-        std::vector<Sample> samples;
+        Samples samples;
         std::ifstream file(filename.c_str());
         if (! file.is_open())
         {
@@ -207,14 +229,11 @@ namespace mug
         }
 
         Sample s;
-        while (loadSample(file, s, min_eye, max_eye, min_o, max_o, min_pos, max_pos, rescaling))
+        while (loadSample(file, s, samples.min_eye, samples.max_eye, samples.min_o, samples.max_o, samples.min_pos, samples.max_pos))
         {
-            samples.push_back(s);
+            samples.addSample(s);
         }
         file.close();
-	
-	// rescale the eye data
-	if (rescaling){rescaleData(samples, min_eye, max_eye, min_o, max_o, min_pos, max_pos);}
 
         return samples;
     }

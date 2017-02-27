@@ -154,7 +154,7 @@ namespace detailLsl{
 	/** 
 	 * \brief Store a sample's values to a stream (string version).
 	 * \param[out] dst Streambuffer
-	 * \param[in] sample Samples's value that will be stored.
+	 * \param[in] sample Sample's value that will be stored.
 	 */
 	template<> inline void write_sample_values(std::streambuf *dst, const std::vector<std::string> &sample) 
 	{
