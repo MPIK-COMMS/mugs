@@ -250,8 +250,8 @@ int main(int argc, char ** argv)
 	// both on command line and in a config file.
 	po::options_description config("Configuration");
 	config.add_options()
-	    ("optimize,O", po::value<bool>(&optimizeScreen)->default_value(false), 
-	     "Specify, whether or not to opimize the screen")
+	    ("optimize,O", po::bool_switch(&optimizeScreen)->default_value(false), 
+	     "Specify, whether or not to opimize the screen. The optimization has no impact on regression based gaze prediction.")
 	    ("reduce,r", po::value<int>(&reduceRate)->default_value(1),
 	     "Set the rate by which the dataset should be reduced in order to accelerate training and testing.")
 	    ("model,m", po::value<std::string>(&eyeModel)->default_value("EyeModelGp"),
