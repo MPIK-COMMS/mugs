@@ -26,8 +26,6 @@
 #include <mug/sample.h>
 #include <mug/eye_model.h>
 
-#include "persistence1d.hpp"
-
 using namespace Eigen;
 using namespace mug;
 

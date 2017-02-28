@@ -27,8 +27,6 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "persistence1d.hpp"
-
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
