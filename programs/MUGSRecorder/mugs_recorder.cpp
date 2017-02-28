@@ -83,11 +83,14 @@ int main (int argc, char** argv)
 	
 	// Check whether the user set the help flag.
 	if (vm.count("help")) {
-	    std::cout << "mugs_recorder - A recording tool for MUGS\n\n"
+	    std::cout << "MUGSRecorder - A recoding tool for MUGS"
+	              << "(C) 2016,2017 Max Planck Institute for Biological Cybernetics\n\n"
 	              << "With this software one can record the head, eye and stimulus movements during\n"
 		      << "an experiment. Head, eye and stimulus coordinates have to be sent with LSL.\n"
 		      << "The results will be stored in a xdf or xdfz file that can be converted into a\n"
-		      << "mugs file with the Python script convertXDFtomugs.py.\n\n";
+		      << "mugs file with the Python script convertXDFtomugs.py.\n\n"
+		      << "This program comes with ABSOLUTELY NO WARRANTY. This is free software, and you are\n"
+		      << "welcome to redistribute it under certain conditions.\n\n";
 	    std::cout << visible << std::endl;
 	    return 0;
 	}
@@ -124,6 +127,11 @@ int main (int argc, char** argv)
         std::cerr << "Exception of unknown type!\n";
 	return 1;
     }
+    
+    // print out License note
+    std::cout << "MUGSRecorder (C) 2016,2017 Max Planck Institute for Biological Cybernetics\n"
+              << "This program comes with ABSOLUTELY NO WARRANTY. This is free software, and you are\n"
+	      << "welcome to redistribute it under certain conditions.\n" << std::endl;
     
     // create LslInterface object
     LslInterface lslInterface(headStream, eyeStream, stimStream);

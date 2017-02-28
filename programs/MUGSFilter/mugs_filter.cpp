@@ -93,9 +93,12 @@ int main(int argc, char ** argv)
 	
 	// Check whether the user set the help flag.
 	if (vm.count("help")) {
-	    std::cout << "mugs_filter - A filtering tool for MUGS\n\n"
+	    std::cout << "MUGSFilter - A filtering tool for MUGS\n" 
+	              << "Copyright (C) 2016,2017 Max Planck Institute for Biological Cybernetics\n\n"
 	              << "With this program, one can perform various filtering methods for a given\n"
-		      << "dataset of sample points. The dataset has to be stored in a mugs file.\n\n";
+		      << "dataset of sample points. The dataset has to be stored in a mugs file.\n\n"
+		      << "This program comes with ABSOLUTELY NO WARRANTY. This is free software, and you are\n"
+		      << "welcome to redistribute it under certain conditions.\n\n";
 	    std::cout << visible << std::endl;
 	    return 0;
 	}
@@ -146,6 +149,11 @@ int main(int argc, char ** argv)
         std::cerr << "Exception of unknown type!\n";
 	return 1;
     }
+    
+    // print out License note
+    std::cout << "MUGSFilter (C) 2016,2017 Max Planck Institute for Biological Cybernetics\n"
+              << "This program comes with ABSOLUTELY NO WARRANTY. This is free software, and you are\n"
+	      << "welcome to redistribute it under certain conditions.\n" << std::endl;
     
     Samples dataset = loadSamples(inputFile);
     std::vector<Eigen::Vector2i> beforeFixOnset = onsetFilter_velocity(dataset.samples, mt, samplerate, order, true);
