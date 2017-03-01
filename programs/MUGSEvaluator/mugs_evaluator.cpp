@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2013, 2017 Max Planck Institute for Biological Cybernetics
+ * Copyright (c) 2017 Max Planck Institute for Biological Cybernetics
  * All rights reserved.
  * 
  * This file is part of MUGS - Mobile and Unrestrained Gazetracking Software.
@@ -19,6 +19,8 @@
  * 
  * Author: Jonas Ditz [jonas.ditz@tuebingen.mpg.de], Bjoern Browatzki
  */
+
+#include "mugs_evaluator.h"
 
 #include <string.h>
 #include <iostream>
@@ -135,7 +137,7 @@ double evaluateTracker( const GazeTracker<EyeModelMoore> &gt, std::vector<Sample
     return mse / samples.size();
 }
 
-double evaluateTracker( const GazeTracker<EyeModelGp> &gt, std::vector<Sample> &samples, std::ofstream &file)
+double evaluateTracker( const GazeTracker<EyeModelGp> &gt, std::vector<Sample> &samples, std::ofstream &file, FileFormat ff)
 {
     double merr_u = 0; 
     double merr_v = 0;
@@ -155,8 +157,7 @@ double evaluateTracker( const GazeTracker<EyeModelGp> &gt, std::vector<Sample> &
         mse = sqrt(eu*eu + ev*ev);
 
         file.precision(10);
-
-        file << uv[0] << " " << uv[1] << " " << uv[2] << std::endl;
+        writeGaze(uv, file, ff);
     }
 
     merr_u /= samples.size();
@@ -167,7 +168,7 @@ double evaluateTracker( const GazeTracker<EyeModelGp> &gt, std::vector<Sample> &
     return mse / samples.size();
 }
 
-double evaluateTracker( const GazeTracker<EyeModelLinear> &gt, std::vector<Sample> &samples, std::ofstream &file)
+double evaluateTracker( const GazeTracker<EyeModelLinear> &gt, std::vector<Sample> &samples, std::ofstream &file, FileFormat ff)
 {
     double merr_u = 0; 
     double merr_v = 0;
@@ -187,7 +188,7 @@ double evaluateTracker( const GazeTracker<EyeModelLinear> &gt, std::vector<Sampl
         mse = sqrt(eu*eu + ev*ev);
 
         file.precision(10);
-        file << uv[0] << " " << uv[1] << " " << uv[2] << std::endl;
+        writeGaze(uv, file, ff);
     }
 
     merr_u /= samples.size();
@@ -198,7 +199,7 @@ double evaluateTracker( const GazeTracker<EyeModelLinear> &gt, std::vector<Sampl
     return mse / samples.size();
 }
 
-double evaluateTracker( const GazeTracker<EyeModelMoore> &gt, std::vector<Sample> &samples, std::ofstream &file)
+double evaluateTracker( const GazeTracker<EyeModelMoore> &gt, std::vector<Sample> &samples, std::ofstream &file, FileFormat ff)
 {
     double merr_u = 0; 
     double merr_v = 0;
@@ -218,7 +219,7 @@ double evaluateTracker( const GazeTracker<EyeModelMoore> &gt, std::vector<Sample
         mse = sqrt(eu*eu + ev*ev);
 
         file.precision(10);
-        file << uv[0] << " " << uv[1] << " " << uv[2] << std::endl;
+        writeGaze(uv, file, ff);
     }
 
     merr_u /= samples.size();
@@ -234,8 +235,9 @@ int main(int argc, char ** argv)
     // Handle command line arguments.
     bool optimizeScreen;
     int reduceRate;
-    std::string eyeModel, trainFile, testFile, outputFile, configFile, modelType;
+    std::string eyeModel, trainFile, testFile, outputFile, configFile, modelType, fileFormat;
     ModelType mt;
+    FileFormat ff;
     try {
         // Declare a group of options that will be allowed
         // only on command line.
@@ -255,10 +257,12 @@ int main(int argc, char ** argv)
 	    ("reduce,r", po::value<int>(&reduceRate)->default_value(1),
 	     "Set the rate by which the dataset should be reduced in order to accelerate training and testing.")
 	    ("model,m", po::value<std::string>(&eyeModel)->default_value("EyeModelGp"),
-	     "Specify the eye model used for the gaze tracker. Possible values are EyeModelGp, EyeModelLinear and EyeModelMoore.")
+	     "Specify the eye model used for the gaze tracker. Possible values are EyeModelGp, EyeModelLinear, and EyeModelMoore.")
 	    ("type,t", po::value<std::string>(&modelType)->default_value("EYE_LEFT"),
-	     "Specify the eye, which will be used for the regression. Possible values are EYE_LEFT, EYE_RIGHT, EYE_BOTH, PUPIL, EYE_OFFSET and HEAD_ONLY.")
-	    ("output,o", po::value<std::string>(&outputFile)->default_value("predicted_gaze.txt"),
+	     "Specify the eye, which will be used for the regression. Possible values are EYE_LEFT, EYE_RIGHT, EYE_BOTH, PUPIL, EYE_OFFSET, and HEAD_ONLY.")
+	    ("format,f", po::value<std::string>(&fileFormat)->default_value("csv"),
+	     "Specify the format of the gaze output file. Possible values are csv, smi, srr, and tobii.")
+	    ("output,o", po::value<std::string>(&outputFile)->default_value("predicted_gaze.csv"),
 	     "Output file that is used to store the predicted gaze positions.")
 	    ("train-file", po::value<std::string>(&trainFile), "Input file that contains the training data.")
 	    ("test-file", po::value<std::string>(&testFile), "Input file that contains the test data.")
@@ -292,7 +296,7 @@ int main(int argc, char ** argv)
 	
 	// Check whether the user set the version flag.
 	if (vm.count("version")) {
-	    std::cout << "Evaluation tool for MUGS sample files, version 1.0" << std::endl;
+	    std::cout << "MUGSEvaluator, version 1.0" << std::endl;
 	    return 0;
 	}
 	
@@ -311,7 +315,7 @@ int main(int argc, char ** argv)
 	// Check which eye model was specified by the user.
 	if ((eyeModel != "EyeModelGp") && (eyeModel != "EyeModelLinear") && (eyeModel != "EyeModelMoore")) {
 	    std::cerr << "Wrong argument for -m/--model: " << eyeModel
-	              << "\nValid arguments are EyeModelGp, EyeModelLinear and EyeModelMoore." 
+	              << "\nValid arguments are EyeModelGp, EyeModelLinear, and EyeModelMoore." 
 	              << std::endl;
             return 1;
 	}
@@ -331,7 +335,27 @@ int main(int argc, char ** argv)
 	    mt = HEAD_ONLY;
 	} else {
 	    std::cerr << "Wrong argument for -t/--type: " << modelType
-	              << "\nValid arguments are EYE_LEFT, EYE_RIGHT, EYE_BOTH, PUPIL, EYE_OFFSET and HEAD_ONLY."
+	              << "\nValid arguments are EYE_LEFT, EYE_RIGHT, EYE_BOTH, PUPIL, EYE_OFFSET, and HEAD_ONLY."
+		      << std::endl;
+            return 1;
+	}
+	
+	// Check what output format was chosen
+	if (fileFormat == "csv"){
+	    ff = CSV;
+	    outputFile = outputFile.substr(0,outputFile.find('.'))+".csv";
+	} else if (fileFormat == "smi"){
+	    ff = SMI;
+	    outputFile = outputFile.substr(0,outputFile.find('.'))+".txt";
+	} else if (fileFormat == "srr"){
+	    ff = SRR;
+	    outputFile = outputFile.substr(0,outputFile.find('.'))+".asc";
+	} else if (fileFormat == "tobii"){
+	    ff = TOBII;
+	    outputFile = outputFile.substr(0,outputFile.find('.'))+".txt";
+	} else {
+	    std::cerr << "Wrong argument for -f/--format: " << modelType
+	              << "\nValid arguments are csv, smi, srr, and tobii."
 		      << std::endl;
             return 1;
 	}
@@ -412,7 +436,7 @@ int main(int argc, char ** argv)
         testSet.samples = reduceSampleRate(reduceRate, testSet.samples);
 
         // Run tracker on test data
-        evaluateTracker(gt, testSet.samples, outStream);
+        evaluateTracker(gt, testSet.samples, outStream, ff);
     } else if (eyeModel == "EyeModelLinear"){
         GazeTracker<EyeModelLinear> gt(screen, mt);
 	// Calibrate gaze tracker using loaded data
@@ -437,7 +461,7 @@ int main(int argc, char ** argv)
         testSet.samples = reduceSampleRate(reduceRate, testSet.samples);
 
         // Run tracker on test data
-        evaluateTracker(gt, testSet.samples, outStream);
+        evaluateTracker(gt, testSet.samples, outStream, ff);
     } else if (eyeModel == "EyeModelMoore"){
         GazeTracker<EyeModelMoore> gt(screen, mt);
 	// Calibrate gaze tracker using loaded data
@@ -462,7 +486,7 @@ int main(int argc, char ** argv)
         testSet.samples = reduceSampleRate(reduceRate, testSet.samples);
 
         // Run tracker on test data
-        evaluateTracker(gt, testSet.samples, outStream);
+        evaluateTracker(gt, testSet.samples, outStream, ff);
     }
     outStream.close();
 }
