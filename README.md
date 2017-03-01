@@ -8,7 +8,7 @@ provides convenient interfaces for recording and analyzing data.
 
 ## Installation - Linux
 
-### Install prerequisites and dependencies:
+### Install prerequisites and dependencies
 
 #### CMake, Boost, Eigen3
 
