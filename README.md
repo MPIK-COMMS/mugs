@@ -2,8 +2,8 @@
 # MUGS - Mobile and Unrestrained Gazetracking Software
 
 ## Introduction
-MUGS provides both, geometric as well as regression methods, for calculating the gaze vector
-of a subject and it's intersection with a planar display in a free moving scenario. It also 
+MUGS provides regression and geometric methods for calculating the gaze vector
+of a subject and the intersection of the gaze vector with a planar display in a free moving scenario. It also 
 provides convenient interfaces for recording and analyzing data.
 
 ## Installation - Linux
@@ -22,7 +22,7 @@ Download and install from:
 https://github.com/mblum/libgp
     
 
-#### Build library:
+#### Build library
 
 In mugs directory, type:
 ```bash
@@ -37,6 +37,7 @@ If you want to build the tests, Google Test is needed. Tests can be build by rep
 ```bash
 cmake -DBUILD_TESTS=ON ..
 ```
+The tests can be run after the make command by typing ./tests/mugstest in the build directory.
 
 #### Build programs
 In mugs directory, type:
