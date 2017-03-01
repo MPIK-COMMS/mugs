@@ -4,7 +4,7 @@
 ## Introduction
 MUGS provides both, geometric as well as regression methods, for calculating the gaze vector
 of a subject and it's intersection with a planar display in a free moving scenario. It also 
-provides helpful interfaces for recording and analyzing data.
+provides convenient interfaces for recording and analyzing data.
 
 ## Installation - Linux
 
