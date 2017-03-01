@@ -83,8 +83,8 @@ int main (int argc, char** argv)
 	
 	// Check whether the user set the help flag.
 	if (vm.count("help")) {
-	    std::cout << "MUGSRecorder - A recoding tool for MUGS"
-	              << "(C) 2016,2017 Max Planck Institute for Biological Cybernetics\n\n"
+	    std::cout << "MUGSRecorder - A recoding tool for MUGS\n"
+	              << "Copyright (c) 2017 Max Planck Institute for Biological Cybernetics\n\n"
 	              << "With this software one can record the head, eye and stimulus movements during\n"
 		      << "an experiment. Head, eye and stimulus coordinates have to be sent with LSL.\n"
 		      << "The results will be stored in a xdf or xdfz file that can be converted into a\n"
@@ -129,7 +129,7 @@ int main (int argc, char** argv)
     }
     
     // print out License note
-    std::cout << "MUGSRecorder (C) 2016,2017 Max Planck Institute for Biological Cybernetics\n"
+    std::cout << "MUGSRecorder Copyright (c) 2017 Max Planck Institute for Biological Cybernetics\n"
               << "This program comes with ABSOLUTELY NO WARRANTY. This is free software, and you are\n"
 	      << "welcome to redistribute it under certain conditions.\n" << std::endl;
     
