@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2013, 2016 Max Planck Institute for Biological Cybernetics
+ * Copyright (c) 2017 Max Planck Institute for Biological Cybernetics
  * All rights reserved.
  * 
  * This file is part of MUGS - Mobile and Unrestrained Gazetracking Software.
@@ -63,34 +63,34 @@ TEST(SampleTest, RescaleEye){
   // test whether the eye coordinates are between 0 and 2
   for (unsigned int j = 0; j < 20; ++j)
   {
-    EXPECT_LE(samples[j].px_left, 2) << "X coordinate of the left eye is greater than 2 at position " << j; 
-    EXPECT_GE(samples[j].px_left, 0) << "X coordinate of the left eye is smaller than 0 at position " << j;
+    EXPECT_LE(samples[j].px_left, 1) << "X coordinate of the left eye is greater than 1 at position " << j; 
+    EXPECT_GE(samples[j].px_left, -1) << "X coordinate of the left eye is smaller than -1 at position " << j;
     
-    EXPECT_LE(samples[j].py_left, 2) << "Y coordinate of the left eye is greater than 2 at position " << j;
-    EXPECT_GE(samples[j].py_left, 0) << "Y coordinate of the left eye is smaller than 0 at position " << j;
+    EXPECT_LE(samples[j].py_left, 1) << "Y coordinate of the left eye is greater than 1 at position " << j;
+    EXPECT_GE(samples[j].py_left, -1) << "Y coordinate of the left eye is smaller than -1 at position " << j;
     
-    EXPECT_LE(samples[j].px_right, 2) << "X coordinate of the right eye is greater than 2 at position " << j;
-    EXPECT_GE(samples[j].px_right, 0) << "X coordinate of the right eye is smaller than 0 at position " << j;
+    EXPECT_LE(samples[j].px_right, 1) << "X coordinate of the right eye is greater than 1 at position " << j;
+    EXPECT_GE(samples[j].px_right, -1) << "X coordinate of the right eye is smaller than -1 at position " << j;
     
-    EXPECT_LE(samples[j].py_right, 2) << "Y coordinate of the right eye is greater than 2 at position " << j;
-    EXPECT_GE(samples[j].py_right, 0) << "Y coordinate of the right eye is smaller than 0 at position " << j;
+    EXPECT_LE(samples[j].py_right, 1) << "Y coordinate of the right eye is greater than 1 at position " << j;
+    EXPECT_GE(samples[j].py_right, -1) << "Y coordinate of the right eye is smaller than -1 at position " << j;
     
-    /*EXPECT_LE(samples[j].H_o[0], 2) << "H_o[0] is greater than 2 at position " << j; 
-    EXPECT_GE(samples[j].H_o[0], 0) << "H_o[0] is smaller than 0 at position " << j;
+    /*EXPECT_LE(samples[j].H_o[0], 1) << "H_o[0] is greater than 1 at position " << j; 
+    EXPECT_GE(samples[j].H_o[0], -1) << "H_o[0] is smaller than -1 at position " << j;
     
-    EXPECT_LE(samples[j].H_o[1], 2) << "H_o[1] is greater than 2 at position " << j; 
-    EXPECT_GE(samples[j].H_o[1], 0) << "H_o[1] is smaller than 0 at position " << j;
+    EXPECT_LE(samples[j].H_o[1], 1) << "H_o[1] is greater than 1 at position " << j; 
+    EXPECT_GE(samples[j].H_o[1], -1) << "H_o[1] is smaller than -1 at position " << j;
     
-    EXPECT_LE(samples[j].H_o[2], 2) << "H_o[2] is greater than 2 at position " << j; 
-    EXPECT_GE(samples[j].H_o[2], 0) << "H_o[2] is smaller than 0 at position " << j;
+    EXPECT_LE(samples[j].H_o[2], 1) << "H_o[2] is greater than 1 at position " << j; 
+    EXPECT_GE(samples[j].H_o[2], -1) << "H_o[2] is smaller than -1 at position " << j;
     
-    EXPECT_LE(samples[j].H_pos[0], 2) << "H_pos[0] is greater than 2 at position " << j; 
-    EXPECT_GE(samples[j].H_pos[0], 0) << "H_pos[0] is smaller than 0 at position " << j;
+    EXPECT_LE(samples[j].H_pos[0], 1) << "H_pos[0] is greater than 1 at position " << j; 
+    EXPECT_GE(samples[j].H_pos[0], -1) << "H_pos[0] is smaller than -1 at position " << j;
     
-    EXPECT_LE(samples[j].H_pos[1], 2) << "H_pos[1] is greater than 2 at position " << j; 
-    EXPECT_GE(samples[j].H_pos[1], 0) << "H_pos[1] is smaller than 0 at position " << j;
+    EXPECT_LE(samples[j].H_pos[1], 1) << "H_pos[1] is greater than 1 at position " << j; 
+    EXPECT_GE(samples[j].H_pos[1], -1) << "H_pos[1] is smaller than -1 at position " << j;
     
-    EXPECT_LE(samples[j].H_pos[2], 2) << "H_pos[2] is greater than 2 at position " << j; 
-    EXPECT_GE(samples[j].H_pos[2], 0) << "H_pos[2] is smaller than 0 at position " << j;*/
+    EXPECT_LE(samples[j].H_pos[2], 1) << "H_pos[2] is greater than 1 at position " << j; 
+    EXPECT_GE(samples[j].H_pos[2], -1) << "H_pos[2] is smaller than -1 at position " << j;*/
   }
 }

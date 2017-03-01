@@ -10,7 +10,7 @@ have to use this calibration routine to train your model. Of cause, you
 can use any calibration routine you want to in order to generate 
 training data for MUGS.
 
-Copyright (c) 2013, 2016 Max Planck Institute for Biological Cybernetics
+Copyright (c) 2017 Max Planck Institute for Biological Cybernetics
 All rights reserved.
  
 This file is part of MUGS - Mobile and Unrestrained Gazetracking Software.

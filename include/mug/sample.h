@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2013, 2016 Max Planck Institute for Biological Cybernetics
+ * Copyright (c) 2013, 2017 Max Planck Institute for Biological Cybernetics
  * All rights reserved.
  * 
  * This file is part of MUGS - Mobile and Unrestrained Gazetracking Software.
@@ -135,7 +135,7 @@ namespace mug
     }
     
     /**
-     * \brief Scale the range of the tracking data to [0,2].
+     * \brief Scale the range of the tracking data to [-1,1].
      * \param[out] samples Vector containing tracking data.
      * \param[in] min_eye Minimum value of the eye position domain.
      * \param[in] max_eye Maximum value of the eye position domain.
@@ -150,18 +150,18 @@ namespace mug
     {
         for (std::vector<Sample>::iterator it = samples.begin(); it != samples.end(); it++)
 	{
-	    it->px_left = (2*(it->px_left - min_eye))/(max_eye - min_eye);
-	    it->py_left = (2*(it->py_left - min_eye))/(max_eye - min_eye);
-	    it->px_right = (2*(it->px_right - min_eye))/(max_eye - min_eye);
-	    it->py_right = (2*(it->py_right - min_eye))/(max_eye - min_eye);
+	    it->px_left = (2*(it->px_left - min_eye))/(max_eye - min_eye) -1;
+	    it->py_left = (2*(it->py_left - min_eye))/(max_eye - min_eye) -1;
+	    it->px_right = (2*(it->px_right - min_eye))/(max_eye - min_eye) -1;
+	    it->py_right = (2*(it->py_right - min_eye))/(max_eye - min_eye) -1;
 	    
-	    //it->H_o[0] = (2*(it->H_o[0] - min_o))/(max_o - min_o);
-	    //it->H_o[1] = (2*(it->H_o[1] - min_o))/(max_o - min_o);
-	    //it->H_o[2] = (2*(it->H_o[2] - min_o))/(max_o - min_o);
+	    //it->H_o[0] = (2*(it->H_o[0] - min_o))/(max_o - min_o) -1;
+	    //it->H_o[1] = (2*(it->H_o[1] - min_o))/(max_o - min_o) -1;
+	    //it->H_o[2] = (2*(it->H_o[2] - min_o))/(max_o - min_o) -1;
 	    
-	    //it->H_pos[0] = (2*(it->H_pos[0] - min_pos))/(max_pos - min_pos);
-	    //it->H_pos[1] = (2*(it->H_pos[1] - min_pos))/(max_pos - min_pos);
-	    //it->H_pos[2] = (2*(it->H_pos[2] - min_pos))/(max_pos - min_pos);
+	    //it->H_pos[0] = (2*(it->H_pos[0] - min_pos))/(max_pos - min_pos) -1;
+	    //it->H_pos[1] = (2*(it->H_pos[1] - min_pos))/(max_pos - min_pos) -1;
+	    //it->H_pos[2] = (2*(it->H_pos[2] - min_pos))/(max_pos - min_pos) -1;
 	}
     }
 

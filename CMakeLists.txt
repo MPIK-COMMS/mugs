@@ -1,5 +1,5 @@
 # 
-# Copyright (c) 2013, 2016 Max Planck Institute for Biological Cybernetics
+# Copyright (c) 2013, 2017 Max Planck Institute for Biological Cybernetics
 # All rights reserved.
 # 
 # This file is part of MUGS - Mobile and Unrestrained Gazetracking Software.
