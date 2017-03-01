@@ -57,7 +57,7 @@ If you have questions or issues please contact us
 
 ## License
 
-Copyright (c) 2013, 2017 Max Planck Institute for Biological Cybernetics
+Copyright (c) 2013, 2017 Max Planck Institute for Biological Cybernetics <br>
 All rights reserved.
  
 MUGS is free software: you can redistribute it and/or modify
