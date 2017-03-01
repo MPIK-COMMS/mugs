@@ -22,7 +22,7 @@ Download and install from:
 https://github.com/mblum/libgp
     
 
-#### Build library
+### Build library
 
 In mugs directory, type:
 ```bash
@@ -39,7 +39,7 @@ cmake -DBUILD_TESTS=ON ..
 ```
 The tests can be run after the make command by typing ./tests/mugstest in the build directory.
 
-#### Build programs
+### Build programs
 In mugs directory, type:
 ```bash
 cd programs/program_of_your_choice
