@@ -28,9 +28,6 @@
 enum FileFormat
 {
   CSV = 1,
-  SMI = 2,
-  SRR = 3,
-  TOBII = 4
 };
 
 
@@ -48,53 +45,44 @@ inline void writeCSV(const Eigen::Vector3f & gaze, std::ofstream &file)
 }
 
 /**
- * \brief This function stores calculated gaze positions in a file that 
- *        mimic the SMI EyeTracker output file.
- * \param[in] gaze Eigen::Vector3f that holds the gaze position and 
- *                 confidence information.
+ * \brief Writer function to write the header of a csv-styled gaze 
+ *        output file.
  * \param[in] file Output stream to the gaze file.
  */
-inline void writeSMI(const Eigen::Vector3f & gaze, std::ofstream &file)
+inline void writeCSVheader(std::ofstream &file)
 {
-  std::cout << "Not implemented yet!" << std::endl;
+  file << "# Gaze position X [px], Gaze position Y [px], Confidence" << std::endl;
 }
 
 /**
- * \brief This function stores calculated gaze positions in a file that 
- *        mimic the SRR EyeTracker output file.
+ * \brief Auxiliary function to map FileFormat to the right writer-function.
  * \param[in] gaze Eigen::Vector3f that holds the gaze position and 
  *                 confidence information.
  * \param[in] file Output stream to the gaze file.
+ * \param[in] ff This variable holds the information which writer-function 
+ *               should be used.
  */
-inline void writeSRR(const Eigen::Vector3f & gaze, std::ofstream &file)
-{
-  std::cout << "Not implemented yet!" << std::endl;
-}
-
-/**
- * \brief This function stores calculated gaze positions in a file that 
- *        mimic the Tobii EyeTracker output file.
- * \param[in] gaze Eigen::Vector3f that holds the gaze position and 
- *                 confidence information.
- * \param[in] file Output stream to the gaze file.
- */
-inline void writeTOBII(const Eigen::Vector3f & gaze, std::ofstream &file)
-{
-  std::cout << "Not implemented yet!" << std::endl;
-}
-
-
 inline void writeGaze(const Eigen::Vector3f & gaze, std::ofstream &file, FileFormat ff)
 {
   switch(ff) 
   {
     case CSV : writeCSV(gaze, file);
                break;
-    case SMI : writeSMI(gaze, file);
+  }
+}
+
+/**
+ * \brief Auxiliary function to map FileFormat to the right writer-function in 
+ *        order to write the right header to the output file.
+ * \param[in] file Output stream to the gaze file.
+ * \param[in] ff This variable holds the information which writer-function 
+ *               should be used.
+ */
+inline void writeHeader(std::ofstream &file, FileFormat ff)
+{
+  switch(ff) 
+  {
+    case CSV : writeCSVheader(file);
                break;
-    case SRR : writeSRR(gaze, file);
-               break;
-    case TOBII : writeTOBII(gaze, file);
-                 break;
   }
 }

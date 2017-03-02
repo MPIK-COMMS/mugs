@@ -261,7 +261,7 @@ int main(int argc, char ** argv)
 	    ("type,t", po::value<std::string>(&modelType)->default_value("EYE_LEFT"),
 	     "Specify the eye, which will be used for the regression. Possible values are EYE_LEFT, EYE_RIGHT, EYE_BOTH, PUPIL, EYE_OFFSET, and HEAD_ONLY.")
 	    ("format,f", po::value<std::string>(&fileFormat)->default_value("csv"),
-	     "Specify the format of the gaze output file. Possible values are csv, smi, srr, and tobii.")
+	     "Specify the format of the gaze output file. Currently, only csv is available.")
 	    ("output,o", po::value<std::string>(&outputFile)->default_value("predicted_gaze.csv"),
 	     "Output file that is used to store the predicted gaze positions.")
 	    ("train-file", po::value<std::string>(&trainFile), "Input file that contains the training data.")
@@ -344,18 +344,9 @@ int main(int argc, char ** argv)
 	if (fileFormat == "csv"){
 	    ff = CSV;
 	    outputFile = outputFile.substr(0,outputFile.find('.'))+".csv";
-	} else if (fileFormat == "smi"){
-	    ff = SMI;
-	    outputFile = outputFile.substr(0,outputFile.find('.'))+".txt";
-	} else if (fileFormat == "srr"){
-	    ff = SRR;
-	    outputFile = outputFile.substr(0,outputFile.find('.'))+".asc";
-	} else if (fileFormat == "tobii"){
-	    ff = TOBII;
-	    outputFile = outputFile.substr(0,outputFile.find('.'))+".txt";
 	} else {
 	    std::cerr << "Wrong argument for -f/--format: " << modelType
-	              << "\nValid arguments are csv, smi, srr, and tobii."
+	              << "\nValid argument is csv."
 		      << std::endl;
             return 1;
 	}
