@@ -156,6 +156,8 @@ int main(int argc, char ** argv)
 	      << "welcome to redistribute it under certain conditions.\n" << std::endl;
     
     Samples dataset = loadSamples(inputFile);
+    std::cout << "Filtering data using a local neighborhood of " << order << " elements on both sides..." << std::endl;
     std::vector<Eigen::Vector2i> beforeFixOnset = onsetFilter_velocity(dataset.samples, mt, samplerate, order, true);
+    std::cout << "  DONE" << std::endl;
     saveSamples(dataset.samples, outputFile);
 }

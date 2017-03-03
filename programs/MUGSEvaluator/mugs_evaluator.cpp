@@ -346,7 +346,7 @@ int main(int argc, char ** argv)
 	    outputFile = outputFile.substr(0,outputFile.find('.'))+".csv";
 	} else {
 	    std::cerr << "Wrong argument for -f/--format: " << modelType
-	              << "\nValid argument is csv."
+	              << "\nValid arguments are csv (further formats will be added in the future)."
 		      << std::endl;
             return 1;
 	}
