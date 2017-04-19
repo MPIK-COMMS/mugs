@@ -588,7 +588,8 @@ namespace mug
 	}
     };
     
-    
+    // Explicit implementation of type_tranfer_loop for the stimulus stream. This implements the shutdown of all recordings, if the stimulus stream sends 
+    // a termination signal.
     template<> inline
     void LslInterface::typed_transfer_loop<boost::int16_t>(uint32_t streamid, double srate, std::string sname, inlet_p in, 
 								double& first_timestamp, double& last_timestamp, uint64_t& sample_count)
@@ -640,6 +641,7 @@ namespace mug
 			    detailLsl::write_little_endian(content.rdbuf(),timestamps[s]);
 			}
 			// [Sample1] .. [SampleN]
+			// check whether the end of the stimulus sequence is reached
 			if (sname == stimStreamName && chunk[s][0] == terminal){
 			    shutdown_ = true;
 			    break;
