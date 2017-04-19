@@ -1,4 +1,5 @@
 <img src="doc/images/mug.png" align="right" height="150" />
+
 # MUGS - Mobile and Unrestrained Gazetracking Software
 
 ## Introduction
