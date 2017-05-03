@@ -2,6 +2,8 @@
 
 # MUGS - Mobile and Unrestrained Gazetracking Software
 
+The development of MUGS was halted for an indefinite period of time!
+
 ## Introduction
 MUGS provides regression and geometric methods for calculating the gaze vector
 of a subject and the intersection of the gaze vector with a planar display in a free moving scenario. It also 
